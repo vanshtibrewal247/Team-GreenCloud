@@ -664,33 +664,6 @@ The base paper proposes DWPA, a dynamic workload power allocation approach that 
 
 ---
 
-# 🚧 Project Status
-
-**Research Prototype — Under Development**
-
-### Completed / Defined
-
-- [x] Research problem identified
-- [x] DWPA base approach analyzed
-- [x] Research gap identified
-- [x] GreenCloud architecture defined
-- [x] Machine Learning + EdgeCloudSim separation defined
-
-### In Progress
-
-- [ ] EdgeCloudSim environment
-- [ ] Task generation
-- [ ] Edge server configuration
-- [ ] Workload dataset preparation
-- [ ] Workload forecasting module
-- [ ] GreenCloud scheduler
-- [ ] Baseline implementations
-- [ ] Carbon-aware evaluation
-- [ ] Performance experiments
-- [ ] Result analysis
-
----
-
 # 🌱 GreenCloud in One Sentence
 
 > **GreenCloud extends reactive carbon-aware edge-cloud scheduling with workload forecasting, enabling the scheduler to consider not only the current system state but also predicted future workload when deciding where tasks should execute.**
