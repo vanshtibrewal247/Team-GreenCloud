@@ -19,8 +19,8 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({ config, on
   return (
     <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+      <div className="flex items-start justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-start gap-2.5 min-w-0 flex-1">
           <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Activity className="w-5 h-5" />
           </div>
@@ -31,7 +31,7 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({ config, on
               </h3>
               <Tooltip content="Defines the intensity, resource demands, and deadline stringency of client requests." />
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate sm:overflow-visible">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Task size, CPU cycles, arrival distributions, and strict SLA deadlines
             </p>
           </div>
@@ -47,12 +47,12 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({ config, on
         {/* Sliders row: Requests Count & Arrival Rate */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <div className="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <div className="flex items-center gap-1">
+            <div className="flex justify-between items-start sm:items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 gap-2">
+              <div className="flex items-center gap-1 flex-wrap">
                 <span>Total Workload Requests</span>
                 <Tooltip content="Total synthetic tasks evaluated during the simulation run." />
               </div>
-              <span className="font-mono text-sm text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-900">
+              <span className="font-mono text-sm text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-900 shrink-0">
                 {config.requestCount.toLocaleString()} Tasks
               </span>
             </div>
@@ -73,12 +73,12 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({ config, on
           </div>
 
           <div>
-            <div className="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <div className="flex items-center gap-1">
+            <div className="flex justify-between items-start sm:items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 gap-2">
+              <div className="flex items-center gap-1 flex-wrap">
                 <span>Arrival Rate (req/s)</span>
                 <Tooltip content="Poisson process arrival frequency per second." />
               </div>
-              <span className="font-mono text-sm text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-900">
+              <span className="font-mono text-sm text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-900 shrink-0">
                 {config.arrivalRate} req/sec
               </span>
             </div>
@@ -102,12 +102,12 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({ config, on
         {/* Sliders row: Task CPU & Deadline */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <div className="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <div className="flex items-center gap-1">
+            <div className="flex justify-between items-start sm:items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 gap-2">
+              <div className="flex items-center gap-1 flex-wrap">
                 <span>Task Compute (MIPS)</span>
                 <Tooltip content="Processing cycles required to complete the task." />
               </div>
-              <span className="font-mono text-xs text-slate-600 dark:text-slate-300 font-semibold">
+              <span className="font-mono text-xs text-slate-600 dark:text-slate-300 font-semibold shrink-0">
                 {config.cpuMipsReq} MIPS
               </span>
             </div>
@@ -123,12 +123,12 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({ config, on
           </div>
 
           <div>
-            <div className="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <div className="flex items-center gap-1">
+            <div className="flex justify-between items-start sm:items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 gap-2">
+              <div className="flex items-center gap-1 flex-wrap">
                 <span>Deadline SLA (ms)</span>
                 <Tooltip content="Maximum acceptable end-to-end response time before the task is considered failed." />
               </div>
-              <span className="font-mono text-xs text-slate-600 dark:text-slate-300 font-semibold">
+              <span className="font-mono text-xs text-slate-600 dark:text-slate-300 font-semibold shrink-0">
                 {config.deadlineMs} ms
               </span>
             </div>
