@@ -40,8 +40,8 @@ export const EdgeConfigCard: React.FC<EdgeConfigCardProps> = ({ config, onChange
     <>
       <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
         {/* Card Header */}
-        <div className="flex items-center justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-start gap-2.5 min-w-0 flex-1">
             <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Cpu className="w-5 h-5" />
             </div>
@@ -52,7 +52,7 @@ export const EdgeConfigCard: React.FC<EdgeConfigCardProps> = ({ config, onChange
                 </h3>
                 <Tooltip content="Configures decentralized base-station and micro-datacenter servers physically closest to the end-users." />
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate sm:overflow-visible">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Low latency, constrained compute & regional grid power
               </p>
             </div>
@@ -72,12 +72,12 @@ export const EdgeConfigCard: React.FC<EdgeConfigCardProps> = ({ config, onChange
         <div className="space-y-4">
           {/* Slider: Number of Edge Servers */}
           <div>
-            <div className="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <div className="flex items-center gap-1">
+            <div className="flex justify-between items-start sm:items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 gap-2">
+              <div className="flex items-center gap-1 flex-wrap">
                 <span>Number of Edge Servers</span>
                 <Tooltip content="Number of physical micro-edge servers. Changing this slider dynamically scales the visualizer nodes on the right!" />
               </div>
-              <span className="font-mono text-sm text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900">
+              <span className="font-mono text-sm text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900 shrink-0">
                 {config.serverCount} Nodes
               </span>
             </div>
@@ -100,12 +100,12 @@ export const EdgeConfigCard: React.FC<EdgeConfigCardProps> = ({ config, onChange
           {/* Grid: CPU & RAM */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <div className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                <div className="flex items-center gap-1">
+              <div className="flex items-start sm:items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 gap-2">
+                <div className="flex items-center gap-1 flex-wrap">
                   <span>CPU Capacity (MIPS)</span>
                   <Tooltip content="Millions of Instructions Per Second processing speed per core." />
                 </div>
-                <span className="font-mono text-[11px] text-slate-500">{config.cpuMips} MIPS</span>
+                <span className="font-mono text-[11px] text-slate-500 shrink-0">{config.cpuMips} MIPS</span>
               </div>
               <input
                 type="range"
@@ -198,13 +198,15 @@ export const EdgeConfigCard: React.FC<EdgeConfigCardProps> = ({ config, onChange
           </div>
 
           {/* Regional Grid Footprint Badge */}
-          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-              <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-              <span>{activeRegionInfo.name} Power Mix:</span>
+          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-slate-600 dark:text-slate-400">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                <span>{activeRegionInfo.name} Power Mix:</span>
+              </div>
               <span className="font-semibold text-slate-800 dark:text-slate-200">{activeRegionInfo.gridMix}</span>
             </div>
-            <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+            <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
               {activeRegionInfo.renewableShare}% Clean
             </span>
           </div>

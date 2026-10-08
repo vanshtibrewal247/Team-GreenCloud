@@ -61,7 +61,7 @@ export const InfrastructureVisualizer: React.FC<InfrastructureVisualizerProps> =
               Live Topology & Offloading Pipeline
             </h3>
           </div>
-          <p className="text-xs text-slate-400 font-mono truncate sm:overflow-visible">
+          <p className="text-xs text-slate-400 font-mono mt-1">
             Synchronized: {edge.serverCount} Edge Nodes ({edgeRegion.name}) • {cloud.serverCount} Cloud DCs ({cloudRegion.name})
           </p>
         </div>
@@ -84,78 +84,14 @@ export const InfrastructureVisualizer: React.FC<InfrastructureVisualizerProps> =
 
       {/* Topology Flow Canvas */}
       <div className="space-y-3 sm:space-y-3.5 relative z-10">
-        {/* TIER 1: IoT & Edge Devices */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-800/80 border border-slate-700/80 relative">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2 text-cloud-300 font-bold text-xs sm:text-sm min-w-0">
-              <Radio className={`w-4 h-4 text-cloud-400 shrink-0 ${animating ? 'animate-pulse' : ''}`} />
-              <span className="truncate sm:overflow-visible">Tier 1 — IoT Ingestion & Smart Edge Devices</span>
-            </div>
-            <span className="font-mono text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60 shrink-0">
-              Generates Tasks • Real-time
-            </span>
-          </div>
 
-          {/* Responsive CSS Grid: 1 col on mobile, 2x2 on tablet, 4 on desktop */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
-            {[
-              { type: 'Autonomous Mobility', req: '500 MIPS', qos: '18ms' },
-              { type: 'Smart Grid Sensor', req: '240 MIPS', qos: '45ms' },
-              { type: 'Robotic Vision', req: '920 MIPS', qos: '25ms' },
-              { type: 'Health Monitor', req: '160 MIPS', qos: '80ms' },
-            ].map((dev, idx) => (
-              <div
-                key={idx}
-                className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-700/60 hover:border-slate-600 transition-all flex flex-col justify-between h-[104px] min-w-0"
-              >
-                <div>
-                  <div className="text-white font-medium text-xs leading-snug line-clamp-2 h-8 break-words">
-                    {dev.type}
-                  </div>
-                  <div className="text-[11px] font-mono font-bold text-slate-300 mt-0.5">
-                    {dev.req}
-                  </div>
-                </div>
-                <div className="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500">Latency SLA</span>
-                  <span className="text-cloud-400 font-bold bg-cloud-950/60 px-1.5 py-0.5 rounded border border-cloud-800/50">
-                    {dev.qos}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Dedicated SLA Area */}
-          <div className="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-2 text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-cloud-400" />
-              <span>Strict QoS Deadline Target:</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-cloud-950/70 border border-cloud-800/70 text-cloud-300 font-bold text-[11px]">
-              <span>SLA: 80ms</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Animated Connector 1: IoT -> Edge */}
-        <div className="my-1 sm:my-1.5 flex items-center justify-center gap-2.5">
-          <div className="flex-1 border-t border-dashed border-emerald-500/30" />
-          <div className="shrink-0 px-3 py-1 rounded-full bg-slate-900 border border-emerald-500/40 text-emerald-400 text-[10px] sm:text-[11px] font-mono font-medium flex items-center gap-1.5 shadow-sm">
-            <span className={`w-1.5 h-1.5 rounded-full bg-emerald-400 ${animating ? 'animate-ping' : ''}`} />
-            <span>5G Low-Latency Fronthaul (sub-10ms)</span>
-            <span className="text-emerald-500/80 font-bold">↓</span>
-          </div>
-          <div className="flex-1 border-t border-dashed border-emerald-500/30" />
-        </div>
-
-        {/* TIER 2: Edge Nodes Layer (Scales dynamically with edge.serverCount) */}
+        {/* TIER 1: Edge Nodes Layer (Scales dynamically with edge.serverCount) */}
         <div className="p-4 sm:p-5 rounded-2xl bg-slate-800/80 border border-emerald-500/40 relative">
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs sm:text-sm min-w-0">
               <Cpu className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="truncate sm:overflow-visible">
-                Tier 2 — Local Edge Cluster ({edge.serverCount} Nodes in {edgeRegion.name})
+              <span>
+                Tier 1 — Local Edge Cluster ({edge.serverCount} Nodes in {edgeRegion.name})
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60 shrink-0">
@@ -237,13 +173,13 @@ export const InfrastructureVisualizer: React.FC<InfrastructureVisualizerProps> =
           <div className="flex-1 border-t border-dashed border-cloud-500/30" />
         </div>
 
-        {/* TIER 3: Hyperscale Cloud Datacenters (Scales with cloud.serverCount) */}
+        {/* TIER 2: Hyperscale Cloud Datacenters (Scales with cloud.serverCount) */}
         <div className="p-4 sm:p-5 rounded-2xl bg-slate-800/80 border border-cloud-500/40 relative">
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 text-cloud-300 font-bold text-xs sm:text-sm min-w-0">
               <Cloud className="w-4 h-4 text-cloud-400 shrink-0" />
-              <span className="truncate sm:overflow-visible">
-                Tier 3 — Centralized Cloud Datacenters ({cloud.serverCount} Instances in {cloudRegion.name})
+              <span>
+                Tier 2 — Centralized Cloud Datacenters ({cloud.serverCount} Instances in {cloudRegion.name})
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono text-[10px] text-cloud-400 bg-cloud-950/60 px-2 py-0.5 rounded border border-cloud-800/60 shrink-0">
