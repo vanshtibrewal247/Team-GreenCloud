@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Cloud, Check, Clock, Database, Wifi, ShieldAlert, Zap } from 'lucide-react';
+import { Cpu, Cloud, MapPin, Layers, Server, Zap, ShieldAlert, Check } from 'lucide-react';
 
 export const EdgeVsCloud: React.FC = () => {
   return (
@@ -13,7 +13,7 @@ export const EdgeVsCloud: React.FC = () => {
             Edge Computing vs Cloud Computing
           </h2>
           <p className="mt-3 text-base text-slate-600 dark:text-slate-400">
-            Optimal computing isn't about choosing Edge <em>over</em> Cloud—it is about orchestrating both tiers dynamically based on latency deadlines and carbon intensity.
+            The paper's system uses both: edge servers can offload to the cloud (vertical) and to each other (horizontal).
           </p>
         </div>
 
@@ -27,32 +27,22 @@ export const EdgeVsCloud: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white">Edge Tier</h3>
-                  <span className="text-xs text-slate-500 font-mono">Decentralized & Proximity-Focused</span>
+                  <span className="text-xs text-slate-500 font-mono">Decentralized &amp; Proximity-Focused</span>
                 </div>
               </div>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                Low Latency
+                Proximity Tier
               </span>
             </div>
 
             <ul className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 flex items-center justify-center mt-0.5 shrink-0">
-                  <Clock className="w-3 h-3" />
+                  <Check className="w-3 h-3" />
                 </div>
                 <div>
-                  <strong className="text-slate-900 dark:text-white">Ultra-Low Latency:</strong>{' '}
-                  Sub-20ms round-trip guarantees fast interactive feedback for time-critical requests.
-                </div>
-              </li>
-
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 flex items-center justify-center mt-0.5 shrink-0">
-                  <Wifi className="w-3 h-3" />
-                </div>
-                <div>
-                  <strong className="text-slate-900 dark:text-white">Near End-Users:</strong>{' '}
-                  Colocated at 5G gNodeB base stations, smart city poles, and campus gateway nodes.
+                  <strong className="text-slate-900 dark:text-white">Close to Users:</strong>{' '}
+                  Positioned near the edge devices and data sources, facilitating responsive processing for delay-sensitive tasks.
                 </div>
               </li>
 
@@ -61,26 +51,31 @@ export const EdgeVsCloud: React.FC = () => {
                   <ShieldAlert className="w-3 h-3" />
                 </div>
                 <div>
-                  <strong className="text-slate-900 dark:text-white">Constrained Resources:</strong>{' '}
-                  Lower CPU MIPS and RAM mean batch parallel tasks quickly trigger queuing bottlenecks.
+                  <strong className="text-slate-900 dark:text-white">Constrained Computing Power:</strong>{' '}
+                  Restricted CPU processing capacity and local queues that require cooperative load distribution.
                 </div>
               </li>
 
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 flex items-center justify-center mt-0.5 shrink-0">
-                  <Zap className="w-3 h-3" />
+                  <Layers className="w-3 h-3" />
                 </div>
                 <div>
-                  <strong className="text-slate-900 dark:text-white">Immediate Response:</strong>{' '}
-                  Rapid spin-up ideal for streaming perception, obstacle detection, and instant telemetry filters.
+                  <strong className="text-slate-900 dark:text-white">Distributed Across Locations:</strong>{' '}
+                  Heterogeneous edge servers deployed in distinct geographic regions with peer-to-peer transmission links.
+                </div>
+              </li>
+
+              <li className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 flex items-center justify-center mt-0.5 shrink-0">
+                  <MapPin className="w-3 h-3" />
+                </div>
+                <div>
+                  <strong className="text-slate-900 dark:text-white">Location-Specific Carbon Intensity:</strong>{' '}
+                  Each regional edge server draws power from its local electricity grid, subject to dynamic local carbon intensity rates kᵢ(t).
                 </div>
               </li>
             </ul>
-
-            <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs font-mono text-slate-500">
-              <span>Typical Capacity: 2,000–8,000 MIPS</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">RTT: 5–30 ms</span>
-            </div>
           </div>
 
           {/* Card 2: Cloud Computing */}
@@ -92,7 +87,7 @@ export const EdgeVsCloud: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white">Cloud Tier</h3>
-                  <span className="text-xs text-slate-500 font-mono">Centralized Hyperscale Infrastructure</span>
+                  <span className="text-xs text-slate-500 font-mono">Centralized Infrastructure</span>
                 </div>
               </div>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cloud-50 dark:bg-cloud-900/40 text-cloud-700 dark:text-cloud-300 border border-cloud-200 dark:border-cloud-800">
@@ -103,49 +98,44 @@ export const EdgeVsCloud: React.FC = () => {
             <ul className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded-full bg-cloud-100 dark:bg-cloud-900/50 text-cloud-600 flex items-center justify-center mt-0.5 shrink-0">
-                  <Database className="w-3 h-3" />
+                  <Server className="w-3 h-3" />
                 </div>
                 <div>
-                  <strong className="text-slate-900 dark:text-white">Virtually Boundless Compute:</strong>{' '}
-                  Elastic auto-scaling across tens of thousands of CPU/GPU cores for heavy neural models.
+                  <strong className="text-slate-900 dark:text-white">Substantial Computing Capacity:</strong>{' '}
+                  Massive centralized server clusters capable of handling intensive computing workloads beyond edge capabilities.
                 </div>
               </li>
 
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded-full bg-cloud-100 dark:bg-cloud-900/50 text-cloud-600 flex items-center justify-center mt-0.5 shrink-0">
-                  <Wifi className="w-3 h-3" />
+                  <Zap className="w-3 h-3" />
                 </div>
                 <div>
                   <strong className="text-slate-900 dark:text-white">Centralized Architecture:</strong>{' '}
-                  Consolidated state management and global aggregation across multiple regional zones.
-                </div>
-              </li>
-
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 flex items-center justify-center mt-0.5 shrink-0">
-                  <Clock className="w-3 h-3" />
-                </div>
-                <div>
-                  <strong className="text-slate-900 dark:text-white">Higher Transit Latency:</strong>{' '}
-                  WAN traversal, cross-region routing, and ISP peering introduce 60–180ms network delay.
+                  Aggregated computing facilities located remotely from the distributed IoT devices.
                 </div>
               </li>
 
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 flex items-center justify-center mt-0.5 shrink-0">
-                  <Zap className="w-3 h-3" />
+                  <ShieldAlert className="w-3 h-3" />
                 </div>
                 <div>
-                  <strong className="text-slate-900 dark:text-white">Power & Resource Intensive:</strong>{' '}
-                  Consumes massive megawatts; environmental impact heavily dictated by regional grid generation.
+                  <strong className="text-slate-900 dark:text-white">Latency Considerations:</strong>{' '}
+                  Due to network propagation and remote location, cloud computing may not meet the stringent latency requirements of many IoT applications.
+                </div>
+              </li>
+
+              <li className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-cloud-100 dark:bg-cloud-900/50 text-cloud-600 flex items-center justify-center mt-0.5 shrink-0">
+                  <MapPin className="w-3 h-3" />
+                </div>
+                <div>
+                  <strong className="text-slate-900 dark:text-white">Power Supply Carbon Intensity:</strong>{' '}
+                  Governed by its own regional grid power supply carbon intensity kᶜˡᵒᵘᵈ(t), independent of edge site locations.
                 </div>
               </li>
             </ul>
-
-            <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs font-mono text-slate-500">
-              <span>Typical Capacity: 20,000–100,000+ MIPS</span>
-              <span className="text-cloud-600 dark:text-cloud-400 font-semibold">RTT: 60–150+ ms</span>
-            </div>
           </div>
         </div>
       </div>
