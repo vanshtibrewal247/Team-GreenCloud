@@ -15,10 +15,10 @@ export const FinalCta: React.FC<FinalCtaProps> = ({ onRunSimulation }) => {
           <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-64 h-64 bg-cloud-500/15 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-carbon-400">
+            {/* <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-carbon-400">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Interactive Experimentation Sandbox</span>
-            </div>
+            </div> */}
 
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
               Ready to see the difference?
