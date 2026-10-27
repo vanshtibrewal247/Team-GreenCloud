@@ -1,116 +1,270 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useCallback } from 'react';
+import { Sliders, Layers } from 'lucide-react';
+
 import {
-  EdgeConfig,
-  CloudConfig,
-  RequestConfig,
-  UploadedDataset,
-  AlgorithmId,
-  SimulationResult,
-} from '../types/simulation';
+  AlgorithmType,
+  SimConfig,
+  SimSummary,
+  TraceData,
+  VSweepPoint,
+  runSimulation,
+  vSweep,
+  calibrateV,
+  autoCalibratePhi,
+  createDefaultConfig,
+  generateLogSpacedValues
+} from '../sim';
+import masterTraceJson from '../data/trace.json';
+
 import { EdgeConfigCard } from '../components/simulator/EdgeConfigCard';
 import { CloudConfigCard } from '../components/simulator/CloudConfigCard';
 import { RequestConfigCard } from '../components/simulator/RequestConfigCard';
 import { DatasetUploaderCard } from '../components/simulator/DatasetUploaderCard';
 import { InfrastructureVisualizer } from '../components/simulator/InfrastructureVisualizer';
 import { ModelSelector } from '../components/simulator/ModelSelector';
+import { AssumptionsPanel } from '../components/simulator/AssumptionsPanel';
 import { SimulationProgressModal } from '../components/simulator/SimulationProgressModal';
 import { ResultsHeader } from '../components/simulator/ResultsHeader';
 import { OverallComparison } from '../components/simulator/OverallComparison';
 import { ChartsSection } from '../components/simulator/ChartsSection';
 import { RequestTable } from '../components/simulator/RequestTable';
 import { WinnerSummary } from '../components/simulator/WinnerSummary';
-import { simulationService } from '../services/simulationService';
-import { Sliders, Layers } from 'lucide-react';
 
 interface TryPageProps {
   onNavigateToResearch: () => void;
 }
 
+const masterTrace = masterTraceJson as unknown as TraceData;
+
 export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
-  // 1. Edge Configuration
-  const [edgeConfig, setEdgeConfig] = useState<EdgeConfig>({
-    serverCount: 5,
-    cpuMips: 4000,
-    ramGb: 8,
-    storageGb: 50,
-    bandwidthMbps: 100,
-    region: 'delhi',
-    additionalRegions: [],
+  // Trace Data
+  const [trace, setTrace] = useState<TraceData>(masterTrace);
+  const [isCustomLoaded, setIsCustomLoaded] = useState(false);
+
+  // Simulation Configuration
+  const [config, setConfig] = useState<SimConfig>(() => createDefaultConfig(masterTrace, 'DWPA'));
+
+  // Calibrated V for DWPA
+  const [calibratedV, setCalibratedV] = useState<number>(() => {
+    const res = calibrateV('DWPA', 0.15, undefined, masterTrace);
+    return res.v ?? 2.571e13;
   });
 
-  // 2. Cloud Configuration
-  const [cloudConfig, setCloudConfig] = useState<CloudConfig>({
-    serverCount: 2,
-    cpuMips: 30000,
-    ramGb: 64,
-    storageGb: 1000,
-    bandwidthMbps: 5000,
-    region: 'singapore',
-  });
+  // Algorithm Selections (Baseline: Local-First, Evaluation Target: DWPA)
+  const [baselineAlgorithm, setBaselineAlgorithm] = useState<AlgorithmType>('Local-First');
+  const [targetAlgorithm, setTargetAlgorithm] = useState<AlgorithmType>('DWPA');
 
-  // 3. Request Configuration
-  const [requestConfig, setRequestConfig] = useState<RequestConfig>({
-    requestCount: 1000,
-    arrivalRate: 120,
-    taskSizeKb: 350,
-    cpuMipsReq: 500,
-    memoryMbReq: 128,
-    deadlineMs: 100,
-    priority: 'mixed',
-  });
-
-  // 4. Uploaded Dataset
-  const [dataset, setDataset] = useState<UploadedDataset | null>(null);
-
-  // 5. Model Selection
-  const [model1, setModel1] = useState<AlgorithmId>('cpu_aware');
-  const [model2, setModel2] = useState<AlgorithmId>('forecast_carbon_aware');
-
-  // 6. Simulation Execution State
+  // Simulation Results State
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationStage, setSimulationStage] = useState('');
   const [simulationPercent, setSimulationPercent] = useState(0);
-  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+
+  const [baselineSummary, setBaselineSummary] = useState<SimSummary | null>(null);
+  const [targetSummary, setTargetSummary] = useState<SimSummary | null>(null);
+  const [benchmarkPoints, setBenchmarkPoints] = useState<Array<{ algorithm: AlgorithmType; carbonKg: number; avgQueueGb: number }>>([]);
+  const [vSweepPoints, setVSweepPoints] = useState<VSweepPoint[]>([]);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const handleRunSimulation = async () => {
-    setIsSimulating(true);
-    setSimulationPercent(10);
-    setSimulationStage('Initializing topology and queuing models...');
+  // Recalibrate V handler
+  const handleRecalibrateV = useCallback(() => {
+    const res = calibrateV('DWPA', 0.15, config, trace);
+    const newV = res.v ?? 2.571e13;
+    setCalibratedV(newV);
+    setConfig(prev => ({
+      ...prev,
+      v: {
+        ...prev.v,
+        value: newV
+      }
+    }));
+  }, [config, trace]);
 
-    try {
-      const result = await simulationService.runSimulation(
-        {
-          edge: edgeConfig,
-          cloud: cloudConfig,
-          request: requestConfig,
-          dataset,
-          model1,
-          model2,
-        },
-        (stage, pct) => {
-          setSimulationStage(stage);
-          setSimulationPercent(pct);
-        }
-      );
+  // Handle Edge Cities change
+  const handleCitiesChange = (newCities: string[]) => {
+    const updated = {
+      ...config,
+      selectedCities: newCities
+    };
+    setConfig(updated);
+    const res = calibrateV('DWPA', 0.15, updated, trace);
+    const newV = res.v ?? 2.571e13;
+    setCalibratedV(newV);
+    setConfig(prev => ({
+      ...prev,
+      selectedCities: newCities,
+      v: {
+        ...prev.v,
+        value: newV
+      }
+    }));
+  };
 
-      setSimulationResult(result);
+  // Paper Preset Handler
+  const handleApplyPaperPreset = () => {
+    const paperCfg: SimConfig = {
+      ...config,
+      phi: {
+        value: 1000,
+        assumed: false,
+        source: 'Paper',
+        reason: 'Paper simulation setup (1000 cycles/bit)'
+      },
+      slotLengthHours: 1,
+      arrivalScale: {
+        value: 1.0,
+        assumed: false,
+        source: 'Dataset',
+        reason: 'Baseline 1.0x workload arrival trace'
+      },
+      bandwidthW: {
+        value: 1, // 1 MHz in paper
+        assumed: false,
+        source: 'Paper',
+        reason: 'Paper wireless bandwidth (1 MHz)'
+      },
+      pMax: {
+        value: 1.0,
+        assumed: false,
+        source: 'Paper',
+        reason: 'Paper maximum transmit power (1.0 W)'
+      },
+      n0Dbm: {
+        value: -130,
+        assumed: false,
+        source: 'Paper',
+        reason: 'Paper background noise power spectral density (-130 dBm)'
+      },
+      usePaperPreset: true
+    };
+    setConfig(paperCfg);
+    const res = calibrateV('DWPA', 0.15, paperCfg, trace);
+    const newV = res.v ?? 2.571e13;
+    setCalibratedV(newV);
+    setConfig(prev => ({
+      ...prev,
+      v: { ...prev.v, value: newV }
+    }));
+  };
 
-      // Smooth scroll to results after completion
-      setTimeout(() => {
-        setIsSimulating(false);
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 500);
-    } catch (err) {
-      console.error(err);
-      setIsSimulating(false);
+  // Reset to default
+  const handleReset = () => {
+    const def = createDefaultConfig(trace, 'DWPA');
+    setConfig(def);
+    const res = calibrateV('DWPA', 0.15, def, trace);
+    const newV = res.v ?? 2.571e13;
+    setCalibratedV(newV);
+    setBaselineSummary(null);
+    setTargetSummary(null);
+    setBenchmarkPoints([]);
+    setVSweepPoints([]);
+  };
+
+  // Load Master Dataset
+  const handleLoadMasterDataset = () => {
+    setTrace(masterTrace);
+    setIsCustomLoaded(false);
+    const def = createDefaultConfig(masterTrace, 'DWPA');
+    setConfig(def);
+    const res = calibrateV('DWPA', 0.15, def, masterTrace);
+    const newV = res.v ?? 2.571e13;
+    setCalibratedV(newV);
+    setBaselineSummary(null);
+    setTargetSummary(null);
+    setBenchmarkPoints([]);
+    setVSweepPoints([]);
+  };
+
+  // Swap Baseline and Target
+  const handleSwapAlgorithms = () => {
+    const temp = baselineAlgorithm;
+    setBaselineAlgorithm(targetAlgorithm);
+    setTargetAlgorithm(temp);
+    if (baselineSummary && targetSummary) {
+      setBaselineSummary(targetSummary);
+      setTargetSummary(baselineSummary);
     }
   };
 
+  // Check if default settings are currently active (to display paper relationship note)
+  const isDefaultSettings = useMemo(() => {
+    return (
+      config.slotLengthHours === 1 &&
+      config.arrivalScale.value === 1.0 &&
+      config.selectedCities.length === masterTrace.cities.length &&
+      config.startHour === 0 &&
+      config.endHour >= masterTrace.num_hours &&
+      Math.abs(config.v.value / (calibratedV || 1) - 1.0) < 0.1
+    );
+  }, [config, calibratedV]);
+
+  // Run Simulation Handler with non-blocking chunked progress
+  const handleRunSimulation = async () => {
+    setIsSimulating(true);
+    setSimulationPercent(10);
+    setSimulationStage(`Initializing simulation and preparing ${trace.num_hours} slot trace...`);
+
+    // Chunk 1: Baseline Simulation
+    setTimeout(() => {
+      setSimulationPercent(30);
+      setSimulationStage(`Replaying Baseline (${baselineAlgorithm})...`);
+
+      setTimeout(() => {
+        const bRes = runSimulation(config, baselineAlgorithm, trace);
+        setBaselineSummary(bRes);
+
+        // Chunk 2: Target Simulation
+        setSimulationPercent(60);
+        setSimulationStage(`Replaying Evaluation Target (${targetAlgorithm})...`);
+
+        setTimeout(() => {
+          const tRes = runSimulation(config, targetAlgorithm, trace);
+          setTargetSummary(tRes);
+
+          // Chunk 3: 7-Algorithm Benchmark & V-Sweep
+          setSimulationPercent(85);
+          setSimulationStage('Computing 14-point Lyapunov V-sweep & 7-algorithm benchmark...');
+
+          setTimeout(() => {
+            // 7 Algorithm benchmark
+            const allAlgs: AlgorithmType[] = [
+              'DWPA',
+              'Local-First',
+              'Vertical-Only',
+              'Horizontal-First',
+              'ICSOC-19',
+              'DOLA-22',
+              'YCL-24'
+            ];
+            const bench = allAlgs.map(alg => {
+              if (alg === baselineAlgorithm) return { algorithm: alg, carbonKg: bRes.totalCarbonKg, avgQueueGb: bRes.avgQueueGb };
+              if (alg === targetAlgorithm) return { algorithm: alg, carbonKg: tRes.totalCarbonKg, avgQueueGb: tRes.avgQueueGb };
+              const res = runSimulation(config, alg, trace);
+              return { algorithm: alg, carbonKg: res.totalCarbonKg, avgQueueGb: res.avgQueueGb };
+            });
+            setBenchmarkPoints(bench);
+
+            // 14-point V-Sweep for DWPA (0.1x to 30x calibrated V)
+            const sweepValues = generateLogSpacedValues(0.1 * calibratedV, 30.0 * calibratedV, 14);
+            const sweepPts = vSweep(config, 'DWPA', sweepValues, trace);
+            setVSweepPoints(sweepPts);
+
+            setSimulationPercent(100);
+            setSimulationStage('Simulation completed.');
+
+            setTimeout(() => {
+              setIsSimulating(false);
+              resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+          }, 30);
+        }, 30);
+      }, 30);
+    }, 30);
+  };
+
   return (
-    <div className="pt-12 sm:pt-16 pb-12 sm:pb-16 space-y-8 sm:space-y-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* Header Banner (Generous clearance below sticky navbar) */}
+    <div className="pt-12 sm:pt-16 pb-16 space-y-8 sm:space-y-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Header Banner */}
       <div className="text-center max-w-3xl mx-auto space-y-2.5">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           Simulation Lab
@@ -122,20 +276,44 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
 
       {/* Main Configuration & Visualizer Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
-        {/* Left Column: Configuration Panels (5 cols on lg/xl, unified vertical gap) */}
+        {/* Left Column: Configuration Panels (5 cols on lg/xl) */}
         <div className="lg:col-span-5 flex flex-col gap-4 sm:gap-5">
           <div className="h-6 flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0">
-            <Sliders className="w-4 h-4 text-carbon-500 shrink-0" />
+            <Sliders className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>Infrastructure & Workload Parameters</span>
           </div>
 
-          <EdgeConfigCard config={edgeConfig} onChange={setEdgeConfig} />
-          <CloudConfigCard config={cloudConfig} onChange={setCloudConfig} />
-          <RequestConfigCard config={requestConfig} onChange={setRequestConfig} />
-          <DatasetUploaderCard dataset={dataset} onDatasetChange={setDataset} />
+          <EdgeConfigCard
+            config={config}
+            trace={trace}
+            onChange={setConfig}
+            onCitiesChange={handleCitiesChange}
+          />
+          <CloudConfigCard
+            config={config}
+            trace={trace}
+            onChange={setConfig}
+          />
+          <RequestConfigCard
+            config={config}
+            trace={trace}
+            calibratedV={calibratedV}
+            onChange={setConfig}
+            onApplyPaperPreset={handleApplyPaperPreset}
+            onRecalibrateV={handleRecalibrateV}
+          />
+          <DatasetUploaderCard
+            trace={trace}
+            isCustomLoaded={isCustomLoaded}
+            onLoadMasterDataset={handleLoadMasterDataset}
+            onCustomTraceLoaded={custom => {
+              setTrace(custom);
+              setIsCustomLoaded(true);
+            }}
+          />
         </div>
 
-        {/* Right Column: Live Infrastructure Visualizer (7 cols on lg/xl, sticky on large screens) */}
+        {/* Right Column: Reactive Topology Canvas (7 cols on lg/xl, sticky) */}
         <div className="lg:col-span-7 lg:sticky lg:top-24 flex flex-col gap-4 sm:gap-5">
           <div className="h-6 flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0">
             <Layers className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -143,8 +321,9 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
           </div>
 
           <InfrastructureVisualizer
-            edge={edgeConfig}
-            cloud={cloudConfig}
+            config={config}
+            trace={trace}
+            targetSummary={targetSummary}
             isSimulating={isSimulating}
           />
         </div>
@@ -152,12 +331,21 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
 
       {/* Strategy Selection & Benchmark Comparator */}
       <ModelSelector
-        model1={model1}
-        model2={model2}
-        onModel1Change={setModel1}
-        onModel2Change={setModel2}
-        onRunComparison={handleRunSimulation}
+        baselineAlgorithm={baselineAlgorithm}
+        targetAlgorithm={targetAlgorithm}
+        onBaselineChange={setBaselineAlgorithm}
+        onTargetChange={setTargetAlgorithm}
+        onSwap={handleSwapAlgorithms}
+        onRunSimulation={handleRunSimulation}
+        onReset={handleReset}
         isSimulating={isSimulating}
+      />
+
+      {/* Assumptions & Limits Panel */}
+      <AssumptionsPanel
+        config={config}
+        trace={trace}
+        calibratedV={calibratedV}
       />
 
       {/* Multi-stage Simulation Loading Modal */}
@@ -168,25 +356,32 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
       />
 
       {/* Results Dashboard Section */}
-      {simulationResult && (
+      {baselineSummary && targetSummary && (
         <div ref={resultsRef} className="pt-8 border-t border-slate-200 dark:border-slate-800 space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-300">
-          <ResultsHeader result={simulationResult} />
+          <ResultsHeader
+            baselineSummary={baselineSummary}
+            targetSummary={targetSummary}
+          />
           <OverallComparison
-            model1={simulationResult.model1Metrics}
-            model2={simulationResult.model2Metrics}
+            baselineSummary={baselineSummary}
+            targetSummary={targetSummary}
           />
           <ChartsSection
-            model1={simulationResult.model1Metrics}
-            model2={simulationResult.model2Metrics}
-            timeSeries={simulationResult.timeSeries}
+            baselineSummary={baselineSummary}
+            targetSummary={targetSummary}
+            benchmarkPoints={benchmarkPoints}
+            vSweepPoints={vSweepPoints}
           />
           <RequestTable
-            traces={simulationResult.traces}
-            model1Name={simulationResult.model1Metrics.algorithmName}
-            model2Name={simulationResult.model2Metrics.algorithmName}
+            baselineSummary={baselineSummary}
+            targetSummary={targetSummary}
+            trace={trace}
           />
           <WinnerSummary
-            result={simulationResult}
+            config={config}
+            baselineSummary={baselineSummary}
+            targetSummary={targetSummary}
+            isDefaultSettings={isDefaultSettings}
             onExploreResearch={onNavigateToResearch}
           />
         </div>

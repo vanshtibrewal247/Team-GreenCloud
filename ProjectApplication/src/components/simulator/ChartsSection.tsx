@@ -1,472 +1,379 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
+  ScatterChart,
+  Scatter,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
   Legend,
+  ReferenceLine,
 } from 'recharts';
-import { ModelMetrics, TimeSeriesPoint } from '../../types/simulation';
-import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Activity } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { BarChart3, LineChart as LineChartIcon, ScatterChart as ScatterIcon, Activity } from 'lucide-react';
+import { SimSummary, VSweepPoint, AlgorithmType } from '../../sim/types';
 
 interface ChartsSectionProps {
-  model1: ModelMetrics;
-  model2: ModelMetrics;
-  timeSeries: TimeSeriesPoint[];
+  baselineSummary: SimSummary;
+  targetSummary: SimSummary;
+  benchmarkPoints: Array<{ algorithm: AlgorithmType; carbonKg: number; avgQueueGb: number }>;
+  vSweepPoints: VSweepPoint[];
 }
 
 export const ChartsSection: React.FC<ChartsSectionProps> = ({
-  model1,
-  model2,
-  timeSeries,
+  baselineSummary,
+  targetSummary,
+  benchmarkPoints,
+  vSweepPoints,
 }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
+  const [activeTab, setActiveTab] = useState<'temporal' | 'queue' | 'cumulative' | 'pareto' | 'vsweep'>('pareto');
 
-  const [activeTab, setActiveTab] = useState<'kpi' | 'temporal' | 'distribution'>('kpi');
+  const bName = baselineSummary.algorithm;
+  const tName = targetSummary.algorithm;
 
-  // Colors
-  const m1Color = '#64748b'; // slate
-  const m2Color = '#10b981'; // emerald
-  const cloudColor = '#0ea5e9'; // sky
-  const carbonColor = '#f59e0b'; // amber
-  const gridColor = isDark ? '#334155' : '#e2e8f0';
-  const textColor = isDark ? '#94a3b8' : '#64748b';
+  // Build time-series dataset downsampled to ~150 points for smooth rendering
+  const timeSeriesData = useMemo(() => {
+    const numSlots = Math.min(baselineSummary.slots.length, targetSummary.slots.length);
+    const step = Math.max(1, Math.floor(numSlots / 120));
 
-  // KPI comparison dataset for Bar Charts
-  const kpiData = [
-    {
-      metric: 'Avg Latency (ms)',
-      [model1.algorithmName]: model1.avgLatencyMs,
-      [model2.algorithmName]: model2.avgLatencyMs,
-    },
-    {
-      metric: 'P95 Latency (ms)',
-      [model1.algorithmName]: model1.p95LatencyMs,
-      [model2.algorithmName]: model2.p95LatencyMs,
-    },
-    {
-      metric: 'Energy (kWh)',
-      [model1.algorithmName]: model1.totalEnergyKwh,
-      [model2.algorithmName]: model2.totalEnergyKwh,
-    },
-    {
-      metric: 'Carbon (kg CO₂)',
-      [model1.algorithmName]: model1.totalCarbonKg,
-      [model2.algorithmName]: model2.totalCarbonKg,
-    },
-  ];
+    let bCumul = 0;
+    let tCumul = 0;
+    const points = [];
 
-  // Pie chart palette
-  const PIE_COLORS = ['#10b981', '#06b6d4', '#6366f1', '#8b5cf6', '#f59e0b', '#ec4899'];
+    for (let i = 0; i < numSlots; i++) {
+      const bSlot = baselineSummary.slots[i];
+      const tSlot = targetSummary.slots[i];
+
+      const bSlotCarbKg = (bSlot?.slotCarbonGrams || 0) / 1000;
+      const tSlotCarbKg = (tSlot?.slotCarbonGrams || 0) / 1000;
+
+      bCumul += bSlotCarbKg;
+      tCumul += tSlotCarbKg;
+
+      if (i % step === 0 || i === numSlots - 1) {
+        let bQueue = 0;
+        let tQueue = 0;
+        if (bSlot) {
+          for (const q of Object.values(bSlot.edgeQueues)) bQueue += q;
+        }
+        if (tSlot) {
+          for (const q of Object.values(tSlot.edgeQueues)) tQueue += q;
+        }
+
+        points.push({
+          slot: i + 1,
+          hour: i * targetSummary.slotLengthHours,
+          [`${bName} Carbon`]: parseFloat(bSlotCarbKg.toFixed(3)),
+          [`${tName} Carbon`]: parseFloat(tSlotCarbKg.toFixed(3)),
+          [`${bName} Queue`]: parseFloat(bQueue.toFixed(2)),
+          [`${tName} Queue`]: parseFloat(tQueue.toFixed(2)),
+          [`${bName} Cumulative`]: parseFloat(bCumul.toFixed(2)),
+          [`${tName} Cumulative`]: parseFloat(tCumul.toFixed(2)),
+        });
+      }
+    }
+    return points;
+  }, [baselineSummary, targetSummary, bName, tName]);
+
+  // Scatter chart data for 7 algorithms
+  const scatterData = useMemo(() => {
+    return benchmarkPoints.map(bp => ({
+      name: bp.algorithm,
+      avgQueueGb: parseFloat(bp.avgQueueGb.toFixed(2)),
+      totalCarbonKg: parseFloat(bp.carbonKg.toFixed(2)),
+      isTarget: bp.algorithm === tName,
+      isBaseline: bp.algorithm === bName,
+    }));
+  }, [benchmarkPoints, bName, tName]);
+
+  // V-Sweep curve data sorted by queue
+  const sweepData = useMemo(() => {
+    return vSweepPoints.map(p => ({
+      v: p.v,
+      avgQueueGb: parseFloat(p.avgQueueGb.toFixed(2)),
+      totalCarbonKg: parseFloat(p.totalCarbonKg.toFixed(2)),
+      gCO2PerGb: parseFloat(p.carbonPerGbProcessed.toFixed(3)),
+    }));
+  }, [vSweepPoints]);
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-6">
-      {/* Header & Sub-navigation tabs */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-carbon-500" />
-            <span>Interactive Simulation Analytics</span>
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Compare latency curves, energy draw, carbon fluctuations, and spatial task allocations.
-          </p>
+    <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm space-y-5">
+      {/* Tab Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <LineChartIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              Comparative Analytical Charts
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Temporal dynamics, cumulative emissions, and Lyapunov queue-delay vs carbon trade-offs
+            </p>
+          </div>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
+        {/* Chart Selector Buttons */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-xs font-semibold">
           <button
-            onClick={() => setActiveTab('kpi')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              activeTab === 'kpi'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            type="button"
+            onClick={() => setActiveTab('pareto')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              activeTab === 'pareto'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>Core KPIs</span>
+            Scatter (7 Algorithms + V-Sweep)
           </button>
-
           <button
+            type="button"
             onClick={() => setActiveTab('temporal')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-xl transition-all ${
               activeTab === 'temporal'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <LineChartIcon className="w-3.5 h-3.5" />
-            <span>Timeline Traces</span>
+            Per-Slot Carbon
           </button>
-
           <button
-            onClick={() => setActiveTab('distribution')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              activeTab === 'distribution'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            type="button"
+            onClick={() => setActiveTab('queue')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              activeTab === 'queue'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <PieChartIcon className="w-3.5 h-3.5" />
-            <span>Task Distribution</span>
+            Per-Slot Total Queue
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('cumulative')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              activeTab === 'cumulative'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Cumulative Carbon
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('vsweep')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              activeTab === 'vsweep'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Target V-Sweep Curve
           </button>
         </div>
       </div>
 
-      {/* TAB 1: Core KPIs (Latency, Energy, Carbon Bar Charts) */}
-      {activeTab === 'kpi' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Chart 1: Latency Comparison */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  Latency Comparison (ms)
-                </h4>
-                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                  Lower is better
-                </span>
-              </div>
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      {
-                        name: 'Avg Latency',
-                        [model1.algorithmName]: model1.avgLatencyMs,
-                        [model2.algorithmName]: model2.avgLatencyMs,
-                      },
-                      {
-                        name: 'P95 Tail',
-                        [model1.algorithmName]: model1.p95LatencyMs,
-                        [model2.algorithmName]: model2.p95LatencyMs,
-                      },
-                    ]}
-                    margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: textColor, fontSize: 11 }} />
-                    <YAxis tick={{ fill: textColor, fontSize: 11 }} unit="ms" />
-                    <RechartsTooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                        borderColor: gridColor,
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Bar dataKey={model1.algorithmName} fill={m1Color} radius={[6, 6, 0, 0]} />
-                    <Bar dataKey={model2.algorithmName} fill={m2Color} radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Chart 2: Energy Consumption */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  Energy Consumption (kWh)
-                </h4>
-                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                  Power efficiency
-                </span>
-              </div>
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      {
-                        name: 'Energy Draw',
-                        [model1.algorithmName]: model1.totalEnergyKwh,
-                        [model2.algorithmName]: model2.totalEnergyKwh,
-                      },
-                    ]}
-                    margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: textColor, fontSize: 11 }} />
-                    <YAxis tick={{ fill: textColor, fontSize: 11 }} unit="kWh" />
-                    <RechartsTooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                        borderColor: gridColor,
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Bar dataKey={model1.algorithmName} fill={m1Color} radius={[6, 6, 0, 0]} />
-                    <Bar dataKey={model2.algorithmName} fill={m2Color} radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Chart 3: Carbon Emissions */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  Carbon Emissions (kg CO₂)
-                </h4>
-                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                  Scope-2 Impact
-                </span>
-              </div>
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      {
-                        name: 'CO₂ Footprint',
-                        [model1.algorithmName]: model1.totalCarbonKg,
-                        [model2.algorithmName]: model2.totalCarbonKg,
-                      },
-                    ]}
-                    margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: textColor, fontSize: 11 }} />
-                    <YAxis tick={{ fill: textColor, fontSize: 11 }} unit="kg" />
-                    <RechartsTooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                        borderColor: gridColor,
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Bar dataKey={model1.algorithmName} fill={m1Color} radius={[6, 6, 0, 0]} />
-                    <Bar dataKey={model2.algorithmName} fill={m2Color} radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: Temporal Traces (Tasks Over Time, Grid Carbon Intensity, Edge vs Cloud) */}
-      {activeTab === 'temporal' && (
-        <div className="space-y-6">
-          {/* Chart 4: Tasks Over Time & Latency Profile */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                Workload Volume & Response Latency Over 24h Timeframe
+      {/* Tab 1: Scatter Chart of 7 Algorithms + DWPA V-Sweep Curve */}
+      {activeTab === 'pareto' && (
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                Operational Carbon vs Average Queue (All 7 Algorithms + 30x V-Sweep Curve)
               </h4>
-              <span className="text-[10px] font-mono text-slate-400">
-                Hourly trace intervals
-              </span>
-            </div>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timeSeries} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                  <XAxis dataKey="timeLabel" tick={{ fill: textColor, fontSize: 10 }} />
-                  <YAxis yAxisId="left" tick={{ fill: textColor, fontSize: 10 }} unit="ms" />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fill: textColor, fontSize: 10 }} unit="req" />
-                  <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                      borderColor: gridColor,
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="requestVolume"
-                    name="Request Volume"
-                    stroke="#cbd5e1"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="model1Latency"
-                    name={`${model1.algorithmName} Latency`}
-                    stroke={m1Color}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="model2Latency"
-                    name={`${model2.algorithmName} Latency`}
-                    stroke={m2Color}
-                    strokeWidth={2.5}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Carbon alone is misleading when queues differ! Lyapunov optimization maps out the continuous frontier.
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Chart 5: Dynamic Carbon Intensity Line Chart */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  Regional Grid Carbon Intensity Over Time
-                </h4>
-                <span className="text-[10px] font-mono text-amber-500 font-bold">
-                  Solar peak dip (11am-3pm)
-                </span>
-              </div>
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={timeSeries} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                    <XAxis dataKey="timeLabel" tick={{ fill: textColor, fontSize: 10 }} />
-                    <YAxis tick={{ fill: textColor, fontSize: 10 }} unit="g" />
-                    <RechartsTooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                        borderColor: gridColor,
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="carbonIntensity"
-                      name="gCO₂/kWh Grid Intensity"
-                      stroke={carbonColor}
-                      strokeWidth={2.5}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+          <div className="h-80 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                <XAxis
+                  type="number"
+                  dataKey="avgQueueGb"
+                  name="Avg Total Queue"
+                  unit=" GB"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  domain={['auto', 'auto']}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="totalCarbonKg"
+                  name="Total Carbon"
+                  unit=" kg"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  domain={['auto', 'auto']}
+                />
+                <RechartsTooltip
+                  cursor={{ strokeDasharray: '3 3' }}
+                  content={({ payload }) => {
+                    if (!payload || payload.length === 0) return null;
+                    const d = payload[0].payload;
+                    return (
+                      <div className="p-3 rounded-2xl bg-slate-900 text-white border border-slate-700 shadow-xl text-xs space-y-1">
+                        <p className="font-bold text-emerald-400">{d.name || 'V-Sweep Point'}</p>
+                        <p>Avg Queue: <span className="font-mono text-amber-300">{d.avgQueueGb} GB</span></p>
+                        <p>Total Carbon: <span className="font-mono text-rose-300">{d.totalCarbonKg} kg</span></p>
+                        {d.v && <p className="text-[10px] text-slate-400">V: {d.v.toExponential(2)}</p>}
+                      </div>
+                    );
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
 
-            {/* Chart 6: Edge vs Cloud Offloading Stacked Bar Chart */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  Spatial Offload: Edge vs Cloud Execution Ratio
-                </h4>
-                <span className="text-[10px] font-mono text-emerald-500 font-bold">
-                  Model 2 Adaptive Split
-                </span>
-              </div>
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={timeSeries.slice(0, 12)} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                    <XAxis dataKey="timeLabel" tick={{ fill: textColor, fontSize: 10 }} />
-                    <YAxis tick={{ fill: textColor, fontSize: 10 }} />
-                    <RechartsTooltip
-                      contentStyle={{
-                        backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                        borderColor: gridColor,
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Bar dataKey="model2EdgeTasks" name="Edge Tasks" stackId="a" fill={m2Color} />
-                    <Bar dataKey="model2CloudTasks" name="Cloud Tasks" stackId="a" fill={cloudColor} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+                {/* V-Sweep Line */}
+                <Scatter
+                  name="DWPA V-Sweep Curve (0.1x to 30x)"
+                  data={sweepData}
+                  line={{ stroke: '#10b981', strokeWidth: 2, strokeDasharray: '4 4' }}
+                  fill="#10b981"
+                  shape="circle"
+                />
+
+                {/* 7 Algorithm Points */}
+                <Scatter
+                  name="Algorithms"
+                  data={scatterData}
+                  fill="#38bdf8"
+                  shape="square"
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* TAB 3: Task Distribution (Pie/Donut Charts) */}
-      {activeTab === 'distribution' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Model 1 Distribution */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white text-center mb-1">
-              {model1.algorithmName} Placement Breakdown
+      {/* Tab 2: Per-Slot Carbon */}
+      {activeTab === 'temporal' && (
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              Hourly Per-Slot Carbon Emissions (kg CO₂ / Slot)
             </h4>
-            <p className="text-[11px] text-slate-400 text-center mb-4">
-              Edge Utilization: {model1.edgeUtilizationPct}% • Cloud: {model1.cloudUtilizationPct}%
-            </p>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={model1.distribution}
-                    dataKey="count"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                  >
-                    {model1.distribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                      borderColor: gridColor,
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                </PieChart>
-              </ResponsiveContainer>
+            <span className="text-xs font-mono text-slate-500">
+              {timeSeriesData.length} Data Points
+            </span>
+          </div>
+          <div className="h-80 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={timeSeriesData} margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                <XAxis dataKey="hour" stroke="#94a3b8" fontSize={11} unit="h" />
+                <YAxis stroke="#94a3b8" fontSize={11} unit=" kg" />
+                <RechartsTooltip
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '1rem', fontSize: '12px' }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                <Line type="monotone" dataKey={`${bName} Carbon`} stroke="#64748b" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey={`${tName} Carbon`} stroke="#10b981" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Per-Slot Queue Backlog */}
+      {activeTab === 'queue' && (
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              Cluster Total Queue Backlog Over Time (GB)
+            </h4>
+            <span className="text-xs font-mono text-slate-500">
+              Latency Proxy (Queuing Delay)
+            </span>
+          </div>
+          <div className="h-80 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={timeSeriesData} margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                <XAxis dataKey="hour" stroke="#94a3b8" fontSize={11} unit="h" />
+                <YAxis stroke="#94a3b8" fontSize={11} unit=" GB" />
+                <RechartsTooltip
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '1rem', fontSize: '12px' }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                <Line type="monotone" dataKey={`${bName} Queue`} stroke="#64748b" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey={`${tName} Queue`} stroke="#38bdf8" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Cumulative Carbon */}
+      {activeTab === 'cumulative' && (
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              Cumulative Total Operational Carbon Emissions (kg CO₂)
+            </h4>
+            <span className="text-xs font-mono text-slate-500">
+              Full 775-Hour Trace Trajectory
+            </span>
+          </div>
+          <div className="h-80 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={timeSeriesData} margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                <XAxis dataKey="hour" stroke="#94a3b8" fontSize={11} unit="h" />
+                <YAxis stroke="#94a3b8" fontSize={11} unit=" kg" />
+                <RechartsTooltip
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '1rem', fontSize: '12px' }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                <Line type="monotone" dataKey={`${bName} Cumulative`} stroke="#64748b" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey={`${tName} Cumulative`} stroke="#10b981" strokeWidth={2.5} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: Target V-Sweep Curve */}
+      {activeTab === 'vsweep' && (
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <div>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                {tName} Lyapunov V-Sweep Curve (Carbon vs Avg Queue)
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Trade-off curve across 14 log-spaced V points from 0.1x to 30x calibrated V
+              </p>
             </div>
           </div>
-
-          {/* Model 2 Distribution */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-emerald-500/30 dark:border-emerald-500/20">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white text-center mb-1">
-              {model2.algorithmName} Placement Breakdown
-            </h4>
-            <p className="text-[11px] text-slate-400 text-center mb-4">
-              Edge Utilization: {model2.edgeUtilizationPct}% • Cloud: {model2.cloudUtilizationPct}%
-            </p>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={model2.distribution}
-                    dataKey="count"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                  >
-                    {model2.distribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                      borderColor: gridColor,
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="h-80 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={sweepData} margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                <XAxis dataKey="avgQueueGb" stroke="#94a3b8" fontSize={11} unit=" GB" />
+                <YAxis dataKey="totalCarbonKg" stroke="#94a3b8" fontSize={11} unit=" kg" />
+                <RechartsTooltip
+                  content={({ payload }) => {
+                    if (!payload || payload.length === 0) return null;
+                    const d = payload[0].payload;
+                    return (
+                      <div className="p-3 rounded-2xl bg-slate-900 text-white border border-slate-700 shadow-xl text-xs space-y-1">
+                        <p className="font-bold text-emerald-400">V = {d.v?.toExponential(2)}</p>
+                        <p>Total Carbon: <span className="font-mono text-rose-300">{d.totalCarbonKg} kg</span></p>
+                        <p>Avg Queue: <span className="font-mono text-amber-300">{d.avgQueueGb} GB</span></p>
+                        <p>Carbon / GB: <span className="font-mono text-sky-300">{d.gCO2PerGb} g/GB</span></p>
+                      </div>
+                    );
+                  }}
+                />
+                <Line type="monotone" dataKey="totalCarbonKg" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, fill: '#10b981' }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}

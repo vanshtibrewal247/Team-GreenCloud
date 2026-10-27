@@ -1,189 +1,133 @@
 import React from 'react';
-import { Cloud, Server, Database, Globe, Zap } from 'lucide-react';
-import { CloudConfig, RegionId } from '../../types/simulation';
-import { Tooltip } from '../common/Tooltip';
-import { REGIONS } from '../../services/carbonService';
+import { Cloud, Wifi, Cpu, MapPin } from 'lucide-react';
+import { SimConfig, TraceData } from '../../sim/types';
 
 interface CloudConfigCardProps {
-  config: CloudConfig;
-  onChange: (updated: CloudConfig) => void;
+  config: SimConfig;
+  trace: TraceData;
+  onChange: (updated: SimConfig) => void;
 }
 
-export const CloudConfigCard: React.FC<CloudConfigCardProps> = ({ config, onChange }) => {
-  const handleUpdate = <K extends keyof CloudConfig>(key: K, value: CloudConfig[K]) => {
+export const CloudConfigCard: React.FC<CloudConfigCardProps> = ({
+  config,
+  trace,
+  onChange,
+}) => {
+  const cloudData = trace.cloud;
+
+  const handleGhzChange = (ghz: number) => {
     onChange({
       ...config,
-      [key]: value,
+      cloudGhzPerCore: {
+        ...config.cloudGhzPerCore,
+        value: ghz,
+      },
     });
   };
 
-  const activeRegionInfo = REGIONS[config.region];
-
   return (
     <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
-      {/* Header */}
+      {/* Card Header */}
       <div className="flex items-start justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-start gap-2.5 min-w-0 flex-1">
-          <div className="w-9 h-9 rounded-xl bg-cloud-50 dark:bg-cloud-950/60 text-cloud-600 dark:text-cloud-400 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
             <Cloud className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 Cloud Configuration
               </h3>
-              <Tooltip content="Configures centralized hyperscale datacenter capacity. High processing bandwidth, but incurs WAN transmission latency." />
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
+                California Hyperscale
+              </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Massive computational capacity & global routing options
+              Centralized hyperscale computing tier in California grid with high renewable mix
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {/* California Datacenter Identity */}
+        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-sky-100/70 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                California Central Datacenter
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Region: {cloudData.region} • {cloudData.num_servers} Servers ({cloudData.total_cores} Total Cores)
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-lg">
+              {cloudData.mean_carbon_intensity.toFixed(1)} g/kWh
+            </span>
+            <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+              Historical Mean CI
             </p>
           </div>
         </div>
 
-        <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-cloud-50 dark:bg-cloud-950/60 text-cloud-700 dark:text-cloud-300 font-semibold border border-cloud-200 dark:border-cloud-800 shrink-0 whitespace-nowrap">
-          Hyperscale Tier
-        </span>
-      </div>
-
-      {/* Controls */}
-      <div className="space-y-4">
-        {/* Slider: Number of Cloud Servers */}
-        <div>
-          <div className="flex justify-between items-start sm:items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 gap-2">
-            <div className="flex items-center gap-1 flex-wrap">
-              <span>Number of Cloud Datacenter Clusters</span>
-              <Tooltip content="Active hyperscale cloud instances available for task execution." />
+        {/* Global Cloud Specs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Cloud CPU Frequency (Assumed, Editable) */}
+          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <Cpu className="w-3.5 h-3.5 text-sky-500" /> Cloud CPU / Core
+              </span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                Assumed
+              </span>
             </div>
-            <span className="font-mono text-sm text-cloud-600 dark:text-cloud-400 font-bold bg-cloud-50 dark:bg-cloud-950/60 px-2 py-0.5 rounded border border-cloud-200 dark:border-cloud-900 shrink-0">
-              {config.serverCount} Datacenters
-            </span>
-          </div>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            step={1}
-            value={config.serverCount}
-            onChange={(e) => handleUpdate('serverCount', Number(e.target.value))}
-            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cloud-500"
-          />
-          <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
-            <span>1 Hyperscale DC</span>
-            <span>5 DCs</span>
-            <span>10 DCs (Global Backbone)</span>
-          </div>
-        </div>
-
-        {/* CPU & RAM */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <div className="flex items-start sm:items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 gap-2">
-              <div className="flex items-center gap-1 flex-wrap">
-                <span>CPU Capacity per DC (MIPS)</span>
-                <Tooltip content="Millions of Instructions Per Second for heavy multi-core virtual machines." />
-              </div>
-              <span className="font-mono text-[11px] text-slate-500 shrink-0">{config.cpuMips.toLocaleString()} MIPS</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="1.0"
+                max="4.0"
+                step="0.1"
+                value={config.cloudGhzPerCore.value}
+                onChange={e => handleGhzChange(parseFloat(e.target.value))}
+                className="w-full accent-sky-500 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
+              />
+              <span className="text-xs font-mono font-bold text-slate-900 dark:text-slate-100 w-16 text-right">
+                {config.cloudGhzPerCore.value.toFixed(1)} GHz
+              </span>
             </div>
-            <input
-              type="range"
-              min={10000}
-              max={60000}
-              step={5000}
-              value={config.cpuMips}
-              onChange={(e) => handleUpdate('cpuMips', Number(e.target.value))}
-              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cloud-500"
-            />
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+              50 hyperscale servers • total cloud capacity {(cloudData.total_cores * config.cloudGhzPerCore.value).toFixed(0)} GHz
+            </p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              <div className="flex items-center gap-1">
-                <span>RAM Allocation</span>
-                <Tooltip content="Memory capacity per cloud node cluster." />
-              </div>
+          {/* Cloud Backhaul Bandwidth (From Dataset) */}
+          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <Wifi className="w-3.5 h-3.5 text-sky-500" /> Uplink Bandwidth
+              </span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                Dataset
+              </span>
             </div>
-            <div className="grid grid-cols-4 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium">
-              {[16, 32, 64, 128].map((gb) => (
-                <button
-                  key={gb}
-                  type="button"
-                  onClick={() => handleUpdate('ramGb', gb)}
-                  className={`py-1 rounded-lg text-center font-mono transition-all ${
-                    config.ramGb === gb
-                      ? 'bg-white dark:bg-slate-700 text-cloud-600 dark:text-cloud-400 font-bold shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  {gb}GB
-                </button>
-              ))}
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-sm font-mono font-bold text-slate-900 dark:text-slate-100">
+                {(config.cloudBandwidthMbps.value / 1000).toFixed(1)} Gbps
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                {config.cloudBandwidthMbps.value.toLocaleString()} Mbps
+              </span>
             </div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+              High-speed optical WAN backhaul to California cloud
+            </p>
           </div>
-        </div>
-
-        {/* Storage, Bandwidth & Location */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Persistent Storage
-            </label>
-            <select
-              value={config.storageGb}
-              onChange={(e) => handleUpdate('storageGb', Number(e.target.value))}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-cloud-500"
-            >
-              <option value={500}>500 GB NVMe</option>
-              <option value={1000}>1,000 GB (1 TB) SAN</option>
-              <option value={5000}>5,000 GB (5 TB) Array</option>
-              <option value={20000}>20 TB Distributed</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              WAN Backhaul
-            </label>
-            <select
-              value={config.bandwidthMbps}
-              onChange={(e) => handleUpdate('bandwidthMbps', Number(e.target.value))}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-cloud-500"
-            >
-              <option value={1000}>1 Gbps Direct Interconnect</option>
-              <option value={5000}>5 Gbps Dedicated Pipe</option>
-              <option value={10000}>10 Gbps High-Speed Backbone</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Cloud Datacenter Zone
-            </label>
-            <select
-              value={config.region}
-              onChange={(e) => handleUpdate('region', e.target.value as RegionId)}
-              className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-cloud-500"
-            >
-              <option value="singapore">Singapore SEA ({REGIONS.singapore.avgCarbonIntensity} gCO₂/kWh)</option>
-              <option value="europe">Europe Frankfurt ({REGIONS.europe.avgCarbonIntensity} gCO₂/kWh)</option>
-              <option value="us_east">US-East N. Virginia ({REGIONS.us_east.avgCarbonIntensity} gCO₂/kWh)</option>
-              <option value="mumbai">Mumbai Central ({REGIONS.mumbai.avgCarbonIntensity} gCO₂/kWh)</option>
-              <option value="delhi">Delhi Cloud Region ({REGIONS.delhi.avgCarbonIntensity} gCO₂/kWh)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Datacenter Grid Footprint Badge */}
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-slate-600 dark:text-slate-400">
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Globe className="w-3.5 h-3.5 text-cloud-500" />
-              <span>{activeRegionInfo.name}:</span>
-            </div>
-            <span className="font-semibold text-slate-800 dark:text-slate-200">{activeRegionInfo.gridMix}</span>
-          </div>
-          <span className="font-mono text-[11px] text-cloud-600 dark:text-cloud-400 font-bold shrink-0">
-            Base Latency: ~{activeRegionInfo.baseNetworkLatencyMs}ms
-          </span>
         </div>
       </div>
     </div>
