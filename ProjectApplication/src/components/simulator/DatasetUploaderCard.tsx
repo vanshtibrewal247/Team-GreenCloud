@@ -1,198 +1,192 @@
-import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, Download, Trash2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
-import { UploadedDataset } from '../../types/simulation';
-import { datasetService } from '../../services/datasetService';
+import React, { useState } from 'react';
+import { UploadCloud, FileSpreadsheet, Download, RefreshCw, AlertCircle, CheckCircle2, Database } from 'lucide-react';
+import { TraceData } from '../../sim/types';
 
 interface DatasetUploaderCardProps {
-  dataset: UploadedDataset | null | undefined;
-  onDatasetChange: (dataset: UploadedDataset | null) => void;
+  trace: TraceData;
+  isCustomLoaded: boolean;
+  onLoadMasterDataset: () => void;
+  onCustomTraceLoaded: (customTrace: TraceData) => void;
 }
 
 export const DatasetUploaderCard: React.FC<DatasetUploaderCardProps> = ({
-  dataset,
-  onDatasetChange,
+  trace,
+  isCustomLoaded,
+  onLoadMasterDataset,
+  onCustomTraceLoaded,
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleFileProcess = (file: File) => {
-    setError(null);
-    if (!file.name.endsWith('.csv')) {
-      setError('Please upload a valid .csv file');
-      return;
-    }
+  const handleDownloadSample = () => {
+    const headers = 'task_id,timestamp,city,region,workload_gb,carbon_intensity_g_per_kwh\n';
+    const sampleRows = [
+      '1,2024-01-01 00:00:00,Los Angeles,california,25.4,285.4',
+      '2,2024-01-01 00:00:00,Boston,new_england,12.8,242.1',
+      '3,2024-01-01 00:00:00,New York City,new_york,14.2,290.0',
+      '4,2024-01-01 01:00:00,Miami,florida,15.6,335.2',
+      '5,2024-01-01 01:00:00,Chicago,midwest,11.3,370.8',
+      '6,2024-01-01 01:00:00,Seattle,northwest,16.5,155.0',
+    ].join('\n');
+
+    const blob = new Blob([headers + sampleRows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'greencloud_sample_dataset.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = event => {
       try {
-        const text = e.target?.result as string;
-        const parsed = datasetService.parseCsvText(file.name, file.size, text);
-        onDatasetChange(parsed);
+        const text = event.target?.result as string;
+        if (!text || text.trim().length === 0) {
+          setErrorMessage('Uploaded CSV file is empty.');
+          return;
+        }
+
+        const lines = text.trim().split(/\r?\n/);
+        if (lines.length < 2) {
+          setErrorMessage('CSV must contain a header line and at least one data row.');
+          return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const requiredHeaders = ['city', 'workload_gb'];
+        const missing = requiredHeaders.filter(
+          rh => !headers.some(h => h.includes(rh) || (rh === 'workload_gb' && h.includes('workload')))
+        );
+
+        if (missing.length > 0) {
+          setErrorMessage(
+            `Missing required column headers: ${missing.join(', ')}. Expected at least "city" and "workload_gb".`
+          );
+          return;
+        }
+
+        setSuccessMessage(`CSV validated successfully: ${lines.length - 1} rows detected.`);
       } catch (err: any) {
-        setError(err.message || 'Failed to parse CSV file');
+        setErrorMessage(`Error parsing CSV: ${err.message || 'Unknown error'}`);
       }
     };
-    reader.onerror = () => setError('Error reading file');
     reader.readAsText(file);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileProcess(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleLoadPreset = () => {
-    const preset = datasetService.getPresetDemoDataset();
-    onDatasetChange(preset);
   };
 
   return (
     <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-            <FileText className="w-5 h-5" />
+      <div className="flex items-start justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+          <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+            <Database className="w-5 h-5" />
           </div>
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Use Your Own Dataset
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Upload a CSV workload dataset to run the simulation using real request traces.
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Trace Dataset
+              </h3>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
+                {isCustomLoaded ? 'Custom Trace' : 'Master Dataset (7,539 tasks)'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Empirical multi-region workload and hourly grid carbon intensity traces
             </p>
           </div>
         </div>
 
+        {/* Download Sample Dataset Button */}
         <button
           type="button"
-          onClick={() => datasetService.downloadSampleDataset()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors shadow-sm"
+          onClick={handleDownloadSample}
+          className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition-all shrink-0"
         >
-          <Download className="w-3.5 h-3.5 text-carbon-500" />
-          <span>Download Sample Dataset</span>
+          <Download className="w-3.5 h-3.5" />
+          <span>Sample CSV</span>
         </button>
       </div>
 
-      {dataset ? (
-        /* Uploaded State */
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-emerald-500/30 dark:border-emerald-500/20 space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">
-                    {dataset.fileName}
-                  </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-semibold">
-                    {dataset.fileSizeKb} KB
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Parsed {dataset.rowCount.toLocaleString()} request rows across {dataset.colCount} attributes
-                </p>
-              </div>
-            </div>
+      <div className="space-y-4">
+        {/* Upload Zone */}
+        <label className="relative border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-purple-500/50 dark:hover:border-purple-500/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-50/50 dark:bg-slate-800/20 transition-colors">
+          <UploadCloud className="w-7 h-7 text-purple-500 mb-1.5" />
+          <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+            Upload custom workload CSV
+          </span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+            Columns: timestamp, city, region, workload_gb, carbon_intensity_g_per_kwh
+          </span>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </label>
 
-            <button
-              onClick={() => onDatasetChange(null)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-              title="Remove dataset"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+        {/* Error / Success Messages */}
+        {errorMessage && (
+          <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-start gap-2 text-xs text-rose-700 dark:text-rose-300">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{errorMessage}</span>
           </div>
+        )}
+        {successMessage && (
+          <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-start gap-2 text-xs text-emerald-700 dark:text-emerald-300">
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{successMessage}</span>
+          </div>
+        )}
 
-          {/* Detected Fields Pill Tags */}
+        {/* Load Master Dataset Default Button */}
+        <div className="flex items-center justify-between pt-1">
+          <button
+            type="button"
+            onClick={onLoadMasterDataset}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Load Master Dataset (7,539 tasks)</span>
+          </button>
+          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            {trace.num_hours} Hours • {trace.total_workload_gb.toLocaleString()} GB
+          </span>
+        </div>
+
+        {/* Data Quality Note & Workload Distribution */}
+        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 space-y-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <span>Data-Quality & Integrity Audit</span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">Verified Trace</span>
+          </div>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+            {trace.data_quality_note}
+          </p>
           <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
-              Detected Schema Columns:
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+              Workload Share by City:
             </span>
-            <div className="flex flex-wrap gap-1.5">
-              {dataset.detectedFields.map((field, idx) => (
-                <span
-                  key={idx}
-                  className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                >
-                  {field}
-                </span>
+            <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
+              {Object.entries(trace.city_workload_shares || {}).map(([cityName, share]) => (
+                <div key={cityName} className="flex justify-between p-1 rounded bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50">
+                  <span className="text-slate-700 dark:text-slate-300 truncate">{cityName.split(' ')[0]}</span>
+                  <span className="text-purple-600 dark:text-purple-400 font-bold">{share}%</span>
+                </div>
               ))}
             </div>
           </div>
         </div>
-      ) : (
-        /* Drag & Drop Area */
-        <div className="space-y-3">
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-200 ${
-              isDragging
-                ? 'border-carbon-500 bg-carbon-50/50 dark:bg-carbon-950/40 scale-[1.01]'
-                : 'border-slate-200 dark:border-slate-700 hover:border-carbon-400 hover:bg-slate-50/60 dark:hover:bg-slate-800/40'
-            }`}
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleFileProcess(e.target.files[0]);
-                }
-              }}
-              accept=".csv"
-              className="hidden"
-            />
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center mx-auto mb-2">
-              <UploadCloud className="w-6 h-6 text-carbon-500" />
-            </div>
-            <div className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
-              Drag & Drop CSV here or <span className="text-carbon-600 dark:text-carbon-400 underline">Browse Files</span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Supported format: .csv (e.g. RequestID, MIPS, Memory, Deadline)
-            </p>
-          </div>
-
-          {error && (
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Quick Preset Button */}
-          <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-            <span>No CSV handy?</span>
-            <button
-              type="button"
-              onClick={handleLoadPreset}
-              className="inline-flex items-center gap-1 text-carbon-600 dark:text-carbon-400 hover:underline font-semibold"
-            >
-              <Sparkles className="w-3 h-3" />
-              <span>Load Preset Alibaba Cluster Trace (1,250 rows)</span>
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

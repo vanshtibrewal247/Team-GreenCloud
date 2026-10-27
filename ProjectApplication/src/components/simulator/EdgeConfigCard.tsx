@@ -1,255 +1,210 @@
-import React, { useState } from 'react';
-import { Cpu, Plus, Trash2, MapPin } from 'lucide-react';
-import { EdgeConfig, RegionId, EdgeRegion } from '../../types/simulation';
-import { Tooltip } from '../common/Tooltip';
-import { REGIONS } from '../../services/carbonService';
-import { AddRegionModal } from './AddRegionModal';
+import React from 'react';
+import { Cpu, Server, Wifi, MapPin, CheckSquare, Square, Info } from 'lucide-react';
+import { SimConfig, TraceData } from '../../sim/types';
 
 interface EdgeConfigCardProps {
-  config: EdgeConfig;
-  onChange: (updated: EdgeConfig) => void;
+  config: SimConfig;
+  trace: TraceData;
+  onChange: (updated: SimConfig) => void;
+  onCitiesChange: (newCities: string[]) => void;
 }
 
-export const EdgeConfigCard: React.FC<EdgeConfigCardProps> = ({ config, onChange }) => {
-  const [modalOpen, setModalOpen] = useState(false);
+export const EdgeConfigCard: React.FC<EdgeConfigCardProps> = ({
+  config,
+  trace,
+  onChange,
+  onCitiesChange
+}) => {
+  const allCities = trace.cities;
 
-  const handleUpdate = <K extends keyof EdgeConfig>(key: K, value: EdgeConfig[K]) => {
-    onChange({
-      ...config,
-      [key]: value,
-    });
+  const toggleCity = (cityName: string) => {
+    let nextCities: string[];
+    if (config.selectedCities.includes(cityName)) {
+      if (config.selectedCities.length <= 1) return; // keep at least 1 city
+      nextCities = config.selectedCities.filter(c => c !== cityName);
+    } else {
+      nextCities = [...config.selectedCities, cityName];
+    }
+    onCitiesChange(nextCities);
   };
 
-  const handleAddSecondaryRegion = (newRegion: EdgeRegion) => {
-    onChange({
-      ...config,
-      additionalRegions: [...config.additionalRegions, newRegion],
-    });
+  const handleSelectAll = () => {
+    onCitiesChange(allCities.map(c => c.city));
   };
 
-  const handleRemoveSecondaryRegion = (id: string) => {
-    onChange({
-      ...config,
-      additionalRegions: config.additionalRegions.filter((r) => r.id !== id),
-    });
+  const handleSelectTopCities = (count: number) => {
+    const subset = allCities.slice(0, count).map(c => c.city);
+    onCitiesChange(subset);
   };
 
-  const activeRegionInfo = REGIONS[config.region];
+  const handleGhzChange = (ghz: number) => {
+    onChange({
+      ...config,
+      edgeGhzPerCore: {
+        ...config.edgeGhzPerCore,
+        value: ghz
+      }
+    });
+  };
 
   return (
-    <>
-      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
-        {/* Card Header */}
-        <div className="flex items-start justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-start gap-2.5 min-w-0 flex-1">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Edge Configuration
-                </h3>
-                <Tooltip content="Configures decentralized base-station and micro-datacenter servers physically closest to the end-users." />
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Low latency, constrained compute & regional grid power
-              </p>
-            </div>
+    <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Cpu className="w-5 h-5" />
           </div>
-
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-dashed border-emerald-400 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition-colors shrink-0 whitespace-nowrap"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Edge Region</span>
-          </button>
-        </div>
-
-        {/* Form Controls */}
-        <div className="space-y-4">
-          {/* Slider: Number of Edge Servers */}
-          <div>
-            <div className="flex justify-between items-start sm:items-center text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 gap-2">
-              <div className="flex items-center gap-1 flex-wrap">
-                <span>Number of Edge Servers</span>
-                <Tooltip content="Number of physical micro-edge servers. Changing this slider dynamically scales the visualizer nodes on the right!" />
-              </div>
-              <span className="font-mono text-sm text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900 shrink-0">
-                {config.serverCount} Nodes
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Edge Configuration
+              </h3>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                {config.selectedCities.length} of {allCities.length} Active Nodes
               </span>
             </div>
-            <input
-              type="range"
-              min={1}
-              max={20}
-              step={1}
-              value={config.serverCount}
-              onChange={(e) => handleUpdate('serverCount', Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-            />
-            <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
-              <span>1 Node (Constrained)</span>
-              <span>10 Nodes</span>
-              <span>20 Nodes (High Density)</span>
-            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Decentralized collaborative edge nodes across US regional grid balancing authorities
+            </p>
           </div>
-
-          {/* Grid: CPU & RAM */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-start sm:items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 gap-2">
-                <div className="flex items-center gap-1 flex-wrap">
-                  <span>CPU Capacity (MIPS)</span>
-                  <Tooltip content="Millions of Instructions Per Second processing speed per core." />
-                </div>
-                <span className="font-mono text-[11px] text-slate-500 shrink-0">{config.cpuMips} MIPS</span>
-              </div>
-              <input
-                type="range"
-                min={1000}
-                max={10000}
-                step={500}
-                value={config.cpuMips}
-                onChange={(e) => handleUpdate('cpuMips', Number(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                <div className="flex items-center gap-1">
-                  <span>RAM Memory</span>
-                  <Tooltip content="RAM allocation per edge server instance." />
-                </div>
-              </div>
-              <div className="grid grid-cols-4 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium">
-                {[2, 4, 8, 16].map((gb) => (
-                  <button
-                    key={gb}
-                    type="button"
-                    onClick={() => handleUpdate('ramGb', gb)}
-                    className={`py-1 rounded-lg text-center font-mono transition-all ${
-                      config.ramGb === gb
-                        ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 font-bold shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    {gb}GB
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Grid: Storage, Bandwidth & Location */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Local NVMe Storage
-              </label>
-              <select
-                value={config.storageGb}
-                onChange={(e) => handleUpdate('storageGb', Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              >
-                <option value={20}>20 GB Flash</option>
-                <option value={50}>50 GB NVMe</option>
-                <option value={100}>100 GB NVMe</option>
-                <option value={250}>250 GB Array</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Edge Bandwidth
-              </label>
-              <select
-                value={config.bandwidthMbps}
-                onChange={(e) => handleUpdate('bandwidthMbps', Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              >
-                <option value={50}>50 Mbps (4G)</option>
-                <option value={100}>100 Mbps (5G NSA)</option>
-                <option value={500}>500 Mbps (5G SA)</option>
-                <option value={1000}>1 Gbps Fiber Fronthaul</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Primary Grid Location
-              </label>
-              <select
-                value={config.region}
-                onChange={(e) => handleUpdate('region', e.target.value as RegionId)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              >
-                <option value="delhi">Delhi ({REGIONS.delhi.avgCarbonIntensity} gCO₂/kWh)</option>
-                <option value="mumbai">Mumbai ({REGIONS.mumbai.avgCarbonIntensity} gCO₂/kWh)</option>
-                <option value="bengaluru">Bengaluru ({REGIONS.bengaluru.avgCarbonIntensity} gCO₂/kWh)</option>
-                <option value="chennai">Chennai ({REGIONS.chennai.avgCarbonIntensity} gCO₂/kWh)</option>
-                <option value="hyderabad">Hyderabad ({REGIONS.hyderabad.avgCarbonIntensity} gCO₂/kWh)</option>
-                <option value="custom">Custom Grid</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Regional Grid Footprint Badge */}
-          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-slate-600 dark:text-slate-400">
-              <div className="flex items-center gap-1.5 shrink-0">
-                <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-                <span>{activeRegionInfo.name} Power Mix:</span>
-              </div>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">{activeRegionInfo.gridMix}</span>
-            </div>
-            <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
-              {activeRegionInfo.renewableShare}% Clean
-            </span>
-          </div>
-
-          {/* Secondary Regions List if any */}
-          {config.additionalRegions.length > 0 && (
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Secondary Regional Clusters ({config.additionalRegions.length})
-              </span>
-              <div className="space-y-1.5">
-                {config.additionalRegions.map((sec) => (
-                  <div
-                    key={sec.id}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
-                  >
-                    <div>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">{sec.name}</span>
-                      <span className="text-slate-400 ml-2 font-mono">
-                        ({sec.serverCount} nodes • {REGIONS[sec.region].name})
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSecondaryRegion(sec.id)}
-                      className="text-rose-500 hover:text-rose-600 p-1"
-                      title="Remove cluster"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      <AddRegionModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onAddRegion={handleAddSecondaryRegion}
-      />
-    </>
+      <div className="space-y-4">
+        {/* Quick Node Selection Presets */}
+        <div>
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              Active Edge Nodes (1 to 9 Cities)
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleSelectTopCities(3)}
+                className="text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+              >
+                Top 3
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectTopCities(5)}
+                className="text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+              >
+                Top 5
+              </button>
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+              >
+                All 9
+              </button>
+            </div>
+          </div>
+
+          {/* Node Grid Selector */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+            {allCities.map(city => {
+              const isSelected = config.selectedCities.includes(city.city);
+              const ci = city.mean_carbon_intensity;
+              const ciColor =
+                ci < 250
+                  ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800'
+                  : ci < 350
+                  ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800'
+                  : 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800';
+
+              return (
+                <button
+                  key={city.city}
+                  type="button"
+                  onClick={() => toggleCity(city.city)}
+                  className={`flex items-center justify-between p-2 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? 'border-emerald-500/50 bg-emerald-50/40 dark:bg-emerald-950/20 shadow-sm'
+                      : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {isSelected ? (
+                      <CheckSquare className="w-4 h-4 text-emerald-500 shrink-0" />
+                    ) : (
+                      <Square className="w-4 h-4 text-slate-400 shrink-0" />
+                    )}
+                    <div className="truncate">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        {city.city}
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        {city.region} • {city.total_cores} cores
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 ${ciColor}`}>
+                    {ci.toFixed(0)} g/kWh
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Global Edge Node Specs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          {/* CPU GHz per Core (Editable Assumed) */}
+          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                CPU Frequency / Core
+              </span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                Assumed
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="1.0"
+                max="4.0"
+                step="0.1"
+                value={config.edgeGhzPerCore.value}
+                onChange={e => handleGhzChange(parseFloat(e.target.value))}
+                className="w-full accent-emerald-500 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
+              />
+              <span className="text-xs font-mono font-bold text-slate-900 dark:text-slate-100 w-16 text-right">
+                {config.edgeGhzPerCore.value.toFixed(1)} GHz
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+              96 cores/server • max node frequency {config.selectedCities.length > 0 ? (96 * config.edgeGhzPerCore.value).toFixed(0) : 0} GHz
+            </p>
+          </div>
+
+          {/* Link Bandwidth (From Dataset) */}
+          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <Wifi className="w-3.5 h-3.5 text-emerald-500" /> Link Bandwidth
+              </span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                Dataset
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-sm font-mono font-bold text-slate-900 dark:text-slate-100">
+                {(config.edgeBandwidthMbps.value / 1000).toFixed(1)} Gbps
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                {config.edgeBandwidthMbps.value.toLocaleString()} Mbps
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+              High-throughput inter-edge P2P & backhaul channel
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
