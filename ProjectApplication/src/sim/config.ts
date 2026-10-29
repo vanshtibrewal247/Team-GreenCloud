@@ -27,6 +27,7 @@ export const ALL_CITY_NAMES = [
 export function usesLyapunovV(algorithm: AlgorithmType): boolean {
   return (
     algorithm === 'DWPA' ||
+    algorithm === 'Forecast-Driven' ||
     algorithm === 'Vertical-Only' ||
     algorithm === 'Horizontal-First' ||
     algorithm === 'YCL-24'
