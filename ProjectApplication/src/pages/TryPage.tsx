@@ -341,13 +341,6 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
         isSimulating={isSimulating}
       />
 
-      {/* Assumptions & Limits Panel */}
-      <AssumptionsPanel
-        config={config}
-        trace={trace}
-        calibratedV={calibratedV}
-      />
-
       {/* Multi-stage Simulation Loading Modal */}
       <SimulationProgressModal
         isOpen={isSimulating}
@@ -376,6 +369,11 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
             baselineSummary={baselineSummary}
             targetSummary={targetSummary}
             trace={trace}
+          />
+          <AssumptionsPanel
+            config={config}
+            trace={trace}
+            calibratedV={calibratedV}
           />
           <WinnerSummary
             config={config}
