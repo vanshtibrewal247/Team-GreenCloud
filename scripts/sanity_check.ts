@@ -25,6 +25,7 @@ const trace = defaultTraceData as unknown as TraceData;
 
 const ALGORITHMS: AlgorithmType[] = [
   'DWPA',
+  'Forecast-Driven',
   'Local-First',
   'Vertical-Only',
   'Horizontal-First',

@@ -5,6 +5,7 @@
 
 export type AlgorithmType =
   | 'DWPA'
+  | 'Forecast-Driven'
   | 'Local-First'
   | 'Vertical-Only'
   | 'Horizontal-First'
@@ -44,6 +45,8 @@ export interface CityTraceData {
   hourly_arrivals_gb: number[];
   hourly_task_counts: number[];
   hourly_carbon_intensity: number[];
+  hourly_predicted_carbon_intensity?: number[];
+  hourly_predicted_arrivals_gb?: number[];
 }
 
 export interface CloudTraceData {
@@ -56,6 +59,7 @@ export interface CloudTraceData {
   full_load_power_watts: number;
   mean_carbon_intensity: number;
   hourly_carbon_intensity: number[];
+  hourly_predicted_carbon_intensity?: number[];
 }
 
 export interface TraceData {
@@ -68,6 +72,13 @@ export interface TraceData {
   data_quality_note: string;
   cities: CityTraceData[];
   cloud: CloudTraceData;
+  ml_metadata?: {
+    model_name: string;
+    features: string[];
+    mean_carbon_mae: number;
+    mean_workload_mae: number;
+    description: string;
+  };
 }
 
 export interface SimConfig {

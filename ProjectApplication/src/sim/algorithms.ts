@@ -20,10 +20,17 @@ import {
 export const ALGORITHM_REGISTRY: Record<AlgorithmType, AlgorithmInfo> = {
   DWPA: {
     id: 'DWPA',
-    name: 'DWPA (Proposed)',
-    description: 'Dynamic Workload Power Allocation via Lyapunov optimization with joint horizontal & vertical offloading.',
+    name: 'DWPA (Reactive Baseline)',
+    description: 'Dynamic Workload Power Allocation via Lyapunov optimization with joint horizontal & vertical offloading (online reactive, no forecasting).',
     approximate: false,
     notes: 'Paper algorithm (Algorithm 1): online reactive adaptation using current queues and CI EMA.'
+  },
+  'Forecast-Driven': {
+    id: 'Forecast-Driven',
+    name: 'Forecast-Driven Carbon-Aware ★ (Proposed)',
+    description: 'Joint horizontal & vertical offloading using ML 1-step-ahead forecasts of regional carbon intensity and workload arrivals.',
+    approximate: false,
+    notes: 'Proposed predictive extension: optimizes offloading and CPU frequency using ML forecasted carbon curves and anticipated queues.'
   },
   'Local-First': {
     id: 'Local-First',
@@ -114,7 +121,10 @@ export function executeSlotStep(
   cloudBuffers: Record<string, number>,
   arrivalsGb: Record<string, number>,
   currentK: Record<string, number>,
-  currentKCloud: number
+  currentKCloud: number,
+  predictedK?: Record<string, number>,
+  predictedKCloud?: number,
+  predictedArrivalsGb?: Record<string, number>
 ): StepOutput {
   const cities = config.selectedCities;
   const slotSec = config.slotLengthHours * 3600;
@@ -126,6 +136,17 @@ export function executeSlotStep(
   const g = config.channelGainG.value;
   const V = config.v.value;
   const phi = config.phi.value;
+
+  // Decision carbon intensity: Forecast-Driven uses predictedK, others use currentK
+  const decK: Record<string, number> = {};
+  for (const c of cities) {
+    decK[c] = (algorithm === 'Forecast-Driven' && predictedK?.[c] !== undefined)
+      ? predictedK[c]
+      : currentK[c];
+  }
+  const decKCloud = (algorithm === 'Forecast-Driven' && predictedKCloud !== undefined)
+    ? predictedKCloud
+    : currentKCloud;
 
   // Clone queues and buffers
   const Q: Record<string, number> = {};
@@ -174,6 +195,9 @@ export function executeSlotStep(
 
     if (algorithm === 'DWPA' || algorithm === 'Vertical-Only' || algorithm === 'Horizontal-First') {
       fStar = solveP1a(qBits, V, currentK[c], ctx.xiEdge, phi, ctx.fMaxHz, tCmp);
+    } else if (algorithm === 'Forecast-Driven') {
+      // Forecast-Driven uses 1-step-ahead ML forecasted carbon intensity to optimize frequency
+      fStar = solveP1a(qBits, V, decK[c], ctx.xiEdge, phi, ctx.fMaxHz, tCmp);
     } else if (algorithm === 'YCL-24') {
       // YCL-24 makes frequency decision using static mean CI, capped at fNeeded and fMax
       fStar = solveP1a(qBits, V, ctx.meanCiStatic, ctx.xiEdge, phi, ctx.fMaxHz, tCmp);
@@ -216,6 +240,8 @@ export function executeSlotStep(
 
     if (algorithm === 'DWPA' || algorithm === 'Vertical-Only' || algorithm === 'Horizontal-First') {
       fcStar = solveP1b(qcBits, V, currentKCloud, ctx.xiCloud, phi, ctx.fcMaxHz, tCmp);
+    } else if (algorithm === 'Forecast-Driven') {
+      fcStar = solveP1b(qcBits, V, decKCloud, ctx.xiCloud, phi, ctx.fcMaxHz, tCmp);
     } else if (algorithm === 'YCL-24') {
       fcStar = solveP1b(qcBits, V, cloudMeanCiStatic, ctx.xiCloud, phi, ctx.fcMaxHz, tCmp);
     } else {
@@ -252,7 +278,7 @@ export function executeSlotStep(
   const peerOffloadedTotal: Record<string, number> = {};
   for (const c of cities) peerOffloadedTotal[c] = 0;
 
-  if (algorithm === 'DWPA' || algorithm === 'Horizontal-First') {
+  if (algorithm === 'DWPA' || algorithm === 'Forecast-Driven' || algorithm === 'Horizontal-First') {
     for (const i of cities) {
       if (Q[i] <= 1e-12) continue;
 
@@ -268,7 +294,11 @@ export function executeSlotStep(
       for (const j of cities) {
         if (i === j) continue;
         const effQj = Q[j] + nextEdgeBuffers[j];
-        if (effQj >= Q[i]) continue; // One-way offload from higher to lower effective queue
+
+        // In predictive mode, anticipate incoming workload on peers and local node
+        const antQi = algorithm === 'Forecast-Driven' ? Q[i] + 0.3 * (predictedArrivalsGb?.[i] ?? 0) : Q[i];
+        const antQj = algorithm === 'Forecast-Driven' ? effQj + 0.3 * (predictedArrivalsGb?.[j] ?? 0) : effQj;
+        if (antQj >= antQi) continue; // One-way offload from higher to lower effective queue
 
         const qBitsI = Q[i] * BITS_PER_GB;
         const qBitsJ = effQj * BITS_PER_GB;
@@ -277,7 +307,7 @@ export function executeSlotStep(
           qBitsI,
           qBitsJ,
           V,
-          currentK[i],
+          decK[i],
           W,
           tOff,
           g,
@@ -290,9 +320,19 @@ export function executeSlotStep(
 
         if (res.xBits > 1e-6 && res.rateBps > 0) {
           peerOffloadPossible[i] = true;
-          const a = (V * currentK[i] * res.pWatts) / res.rateBps;
+          const a = (V * decK[i] * res.pWatts) / res.rateBps;
           const b = qBitsI - qBitsJ;
-          const netBenefit = b - a; // Marginal Lyapunov drift reduction per bit
+
+          // In predictive mode: bonus if peer is forecast to have cleaner energy than local node
+          let carbonDiffBonus = 0;
+          if (algorithm === 'Forecast-Driven') {
+            const deltaK = decK[i] - decK[j];
+            if (deltaK > 0) {
+              carbonDiffBonus = V * deltaK * 1e-12 * BITS_PER_GB;
+            }
+          }
+
+          const netBenefit = b - a + carbonDiffBonus; // Marginal Lyapunov drift reduction per bit
 
           if (netBenefit > 0) {
             const maxVolGb = Math.min(res.xBits / BITS_PER_GB, (Q[i] - effQj) / 2);
@@ -442,9 +482,10 @@ export function executeSlotStep(
 
     const maxRateBps = nodeContexts[i].bandwidthMbps * 1e6;
 
-    if (algorithm === 'DWPA' || algorithm === 'Vertical-Only') {
+    if (algorithm === 'DWPA' || algorithm === 'Forecast-Driven' || algorithm === 'Vertical-Only') {
       const effQc = Qc[i] + nextCloudBuffers[i];
-      if (effQc < Q[i]) {
+      const antQi = algorithm === 'Forecast-Driven' ? Q[i] + 0.3 * (predictedArrivalsGb?.[i] ?? 0) : Q[i];
+      if (effQc < antQi) {
         const qBits = Q[i] * BITS_PER_GB;
         const qcBits = effQc * BITS_PER_GB;
 
@@ -452,7 +493,7 @@ export function executeSlotStep(
           qBits,
           qcBits,
           V,
-          currentK[i],
+          decK[i],
           W,
           tOff,
           g,

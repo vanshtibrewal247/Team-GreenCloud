@@ -14,6 +14,7 @@ interface ModelSelectorProps {
 
 const ALGORITHMS: AlgorithmType[] = [
   'DWPA',
+  'Forecast-Driven',
   'Local-First',
   'Vertical-Only',
   'Horizontal-First',

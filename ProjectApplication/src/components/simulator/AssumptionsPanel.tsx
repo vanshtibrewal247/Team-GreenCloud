@@ -95,7 +95,7 @@ export const AssumptionsPanel: React.FC<AssumptionsPanelProps> = ({
       item: 'Lyapunov V',
       value: `Calibrated V = ${calibratedV.toExponential(3)} (Current = ${config.v.value.toExponential(3)}, ${vMultiplier.toFixed(2)}x)`,
       source: 'Assumed',
-      why: "Chosen so DWPA's average queue is about 15% of one slot's arrivals. DWPA, Vertical-Only, Horizontal-First and YCL-24 share this V.",
+      why: "Chosen so DWPA's average queue is about 15% of one slot's arrivals. DWPA, Forecast-Driven, Vertical-Only, Horizontal-First and YCL-24 share this V.",
     },
     {
       id: 'carbon_intensity',
