@@ -1,6 +1,6 @@
 import React from 'react';
 import { TeamMember } from '../../types/team';
-import { Mail, GraduationCap, Award, BookOpen } from 'lucide-react';
+import { Mail, GraduationCap } from 'lucide-react';
 import { GithubIcon, LinkedinIcon } from '../common/SocialIcons';
 
 export const TeamGrid: React.FC = () => {
@@ -8,71 +8,94 @@ export const TeamGrid: React.FC = () => {
     {
       id: 'member-1',
       order: '01',
-      name: 'Pratikshit singh',
-      rollNo: '2024UIT3004',
-      role: 'Team Lead & Research Architect',
-      badge: 'Lead Investigator',
-      institution: 'Dept. of Information Technology',
+      name: 'Himesh Kumar Meena',
+      rollNo: '2024UIT3077',
+      role: 'Team Lead & ML / Frontend Engineer',
+      badge: 'Team Lead & ML / Frontend Engineer',
+      institution: 'Department of Information Technology',
       avatarUrl:
-        'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&auto=format&fit=crop&q=80',
-      bio: 'Leading the GreenCloud research initiative. Spearheading theoretical mathematical formulation of the forecast-driven carbon-aware offloading framework and coordinating project milestones.',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
+      bio: 'Leading the EDGE²CO Research Lab initiative, coordinating project development and contributing to the development of intelligent carbon-aware edge-cloud task offloading solutions. Responsible for ML model development and the frontend experience of the research platform.',
       responsibilities: [
-        'Formulation of joint latency-energy-carbon MINLP problem',
-        'Academic paper authorship and literature benchmark synthesis',
-        'System architecture design and project roadmap oversight',
+        'Leading overall project coordination and technical development.',
+        'Developing and experimenting with machine learning models for task duration prediction and carbon intensity forecasting.',
+        'Designing and developing the website frontend using React and TypeScript.',
+        'Building intuitive, responsive user interfaces and improving the overall UI/UX experience.',
+        'Integrating ML predictions and simulation results into the research platform.',
       ],
-      focusAreas: ['Distributed Systems', 'Green Computing', 'Combinatorial Optimization'],
+      focusAreas: [
+        'Team Leadership',
+        'Machine Learning',
+        'React & TypeScript',
+        'UI/UX Development',
+        'Carbon-Aware Computing',
+      ],
       social: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'pratikshit.singh@research.edu',
-        scholar: 'https://scholar.google.com',
+        github: 'https://github.com/mr-knight-28',
+        linkedin: '',
+        email: 'himesh.meena.ug24@nsut.ac.in',
       },
     },
     {
       id: 'member-2',
       order: '02',
-      name: 'Himesh kumar Meena',
-      rollNo: '2024UIT3077',
-      role: 'Simulation & Edge Systems Specialist',
-      badge: 'Systems Engineer',
-      institution: 'Dept. of Information Technology',
+      name: 'Vansh Tiberiwal',
+      rollNo: '2024UIT3019',
+      role: 'Data Curation & Frontend Developer',
+      badge: 'Data Curation & Frontend Developer',
+      institution: 'Department of Information Technology',
       avatarUrl:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
-      bio: 'Architecting the discrete-event simulation pipeline. Specializes in EdgeCloudSim configuration, network topology modeling, and high-fidelity trace generation.',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
+      bio: 'Contributing to the EDGE²CO research initiative through dataset curation and frontend development. Focuses on preparing and organizing research datasets and developing interactive web interfaces for visualizing edge-cloud computing and carbon-aware scheduling results.',
       responsibilities: [
-        'EdgeCloudSim custom extensions and simulation backend',
-        'Cellular base station network delay calibration',
-        'Workload trace ingestion and queuing buffer modeling',
+        'Collecting, cleaning and organizing datasets required for edge-cloud workload analysis.',
+        'Performing data preprocessing, validation and curation for machine learning experiments.',
+        'Developing frontend components and interactive dashboards for the research platform.',
+        'Integrating charts and visualizations to communicate simulation and forecasting results.',
+        'Collaborating on frontend architecture and improving the usability of the application.',
       ],
-      focusAreas: ['EdgeCloudSim', 'Network Simulation', 'Cloud Architecture'],
+      focusAreas: [
+        'Data Curation',
+        'Data Preprocessing',
+        'React Development',
+        'Data Visualization',
+        'Frontend Engineering',
+      ],
       social: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'himesh.meena@research.edu',
+        github: 'https://github.com/vanshtibrewal247',
+        linkedin: '',
+        email: 'vansh.tiberiwal.ug24@nsut.ac.in',
       },
     },
     {
       id: 'member-3',
       order: '03',
-      name: 'Vansh Tiberiwal',
-      rollNo: '2024UIT3019',
-      role: 'ML Forecasting & Full-Stack Engineer',
-      badge: 'AI / UI Specialist',
-      institution: 'Dept. of Information Technology',
+      name: 'Pratikshit Singh',
+      rollNo: '2024UIT3004',
+      role: 'Data Curation & Backend Developer',
+      badge: 'Data Curation & Backend Developer',
+      institution: 'Department of Information Technology',
       avatarUrl:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
-      bio: 'Developing predictive time-series models for renewable grid fluctuations and engineering the interactive React + TypeScript simulation analytics dashboard.',
+        'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&auto=format&fit=crop&q=80',
+      bio: "Contributing to the EDGE²CO research initiative through dataset curation and backend engineering. Focuses on managing research data, developing backend services and supporting the integration of the application's simulation and machine learning components.",
       responsibilities: [
-        'LSTM and sequence forecasting for regional grid emissions',
-        'Interactive simulation dashboard UI/UX and Recharts analytics',
-        'Client-side state synchronization and data pipeline integration',
+        'Collecting, organizing and validating datasets used in edge-cloud computing experiments.',
+        'Developing backend APIs and server-side application logic.',
+        'Designing data-processing workflows for workload and carbon-intensity information.',
+        'Supporting integration between the frontend, backend and simulation components.',
+        'Contributing to backend architecture, data management and application reliability.',
       ],
-      focusAreas: ['Time-Series Forecasting', 'Modern Web Interfaces', 'Data Visualization'],
+      focusAreas: [
+        'Data Curation',
+        'Backend Development',
+        'API Development',
+        'Data Processing',
+        'System Architecture',
+      ],
       social: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'vansh.tiberiwal@research.edu',
+        github: 'https://github.com/pratikshitcodes',
+        linkedin: '',
+        email: 'pratikshit.singh.ug24@nsut.ac.in',
       },
     },
   ];
@@ -87,11 +110,11 @@ export const TeamGrid: React.FC = () => {
           >
             <div className="space-y-4">
               {/* Top Order & Badge */}
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-2xl font-extrabold text-slate-300 dark:text-slate-700">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-2xl font-extrabold text-slate-300 dark:text-slate-700 shrink-0">
                   {m.order}
                 </span>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-carbon-50 dark:bg-carbon-950/60 text-carbon-700 dark:text-carbon-300 border border-carbon-200 dark:border-carbon-800">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-carbon-50 dark:bg-carbon-950/60 text-carbon-700 dark:text-carbon-300 border border-carbon-200 dark:border-carbon-800 text-right leading-tight">
                   {m.badge}
                 </span>
               </div>
@@ -171,23 +194,33 @@ export const TeamGrid: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  aria-label="GitHub Profile"
+                  aria-label={`${m.name}'s GitHub Profile`}
                 >
                   <GithubIcon className="w-4 h-4" />
                 </a>
-                <a
-                  href={m.social.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  aria-label="LinkedIn Profile"
-                >
-                  <LinkedinIcon className="w-4 h-4" />
-                </a>
+                {m.social.linkedin ? (
+                  <a
+                    href={m.social.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    aria-label={`${m.name}'s LinkedIn Profile`}
+                  >
+                    <LinkedinIcon className="w-4 h-4" />
+                  </a>
+                ) : (
+                  <span
+                    className="p-2 rounded-xl text-slate-300 dark:text-slate-600 cursor-not-allowed opacity-60 inline-flex items-center justify-center select-none"
+                    aria-label="LinkedIn profile coming soon"
+                    title="LinkedIn profile coming soon"
+                  >
+                    <LinkedinIcon className="w-4 h-4" />
+                  </span>
+                )}
                 <a
                   href={`mailto:${m.social.email}`}
                   className="p-2 rounded-xl text-slate-500 hover:text-carbon-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  aria-label="Send Email"
+                  aria-label={`Send Email to ${m.name}`}
                 >
                   <Mail className="w-4 h-4" />
                 </a>
