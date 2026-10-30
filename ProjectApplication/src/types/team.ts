@@ -2,6 +2,7 @@ export interface TeamMember {
   id: string;
   order: string;
   name: string;
+  rollNo?: string;
   role: string;
   badge: string;
   avatarUrl: string;

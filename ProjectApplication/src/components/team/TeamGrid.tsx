@@ -8,13 +8,14 @@ export const TeamGrid: React.FC = () => {
     {
       id: 'member-1',
       order: '01',
-      name: 'Aarav Sharma',
+      name: 'Pratikshit singh',
+      rollNo: '2024UIT3004',
       role: 'Team Lead & Research Architect',
       badge: 'Lead Investigator',
-      institution: 'Dept. of Computer Science & Engineering',
+      institution: 'Dept. of Information Technology',
       avatarUrl:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-      bio: 'Leading the EDGE²CO research initiative. Spearheading theoretical mathematical formulation of the multi-objective Pareto offloading framework and coordinating project milestones.',
+        'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&auto=format&fit=crop&q=80',
+      bio: 'Leading the GreenCloud research initiative. Spearheading theoretical mathematical formulation of the forecast-driven carbon-aware offloading framework and coordinating project milestones.',
       responsibilities: [
         'Formulation of joint latency-energy-carbon MINLP problem',
         'Academic paper authorship and literature benchmark synthesis',
@@ -24,22 +25,23 @@ export const TeamGrid: React.FC = () => {
       social: {
         github: 'https://github.com',
         linkedin: 'https://linkedin.com',
-        email: 'aarav.sharma@research.edu',
+        email: 'pratikshit.singh@research.edu',
         scholar: 'https://scholar.google.com',
       },
     },
     {
       id: 'member-2',
       order: '02',
-      name: 'Rohan Verma',
+      name: 'Himesh kumar Meena',
+      rollNo: '2024UIT3077',
       role: 'Simulation & Edge Systems Specialist',
       badge: 'Systems Engineer',
-      institution: 'Dept. of Computer Science & Engineering',
+      institution: 'Dept. of Information Technology',
       avatarUrl:
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
       bio: 'Architecting the discrete-event simulation pipeline. Specializes in EdgeCloudSim configuration, network topology modeling, and high-fidelity trace generation.',
       responsibilities: [
-        'EdgeCloudSim custom extensions and Java simulation backend',
+        'EdgeCloudSim custom extensions and simulation backend',
         'Cellular base station network delay calibration',
         'Workload trace ingestion and queuing buffer modeling',
       ],
@@ -47,18 +49,19 @@ export const TeamGrid: React.FC = () => {
       social: {
         github: 'https://github.com',
         linkedin: 'https://linkedin.com',
-        email: 'rohan.verma@research.edu',
+        email: 'himesh.meena@research.edu',
       },
     },
     {
       id: 'member-3',
       order: '03',
-      name: 'Ananya Iyer',
+      name: 'Vansh Tiberiwal',
+      rollNo: '2024UIT3019',
       role: 'ML Forecasting & Full-Stack Engineer',
       badge: 'AI / UI Specialist',
-      institution: 'Dept. of Computer Science & Engineering',
+      institution: 'Dept. of Information Technology',
       avatarUrl:
-        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
       bio: 'Developing predictive time-series models for renewable grid fluctuations and engineering the interactive React + TypeScript simulation analytics dashboard.',
       responsibilities: [
         'LSTM and sequence forecasting for regional grid emissions',
@@ -69,7 +72,7 @@ export const TeamGrid: React.FC = () => {
       social: {
         github: 'https://github.com',
         linkedin: 'https://linkedin.com',
-        email: 'ananya.iyer@research.edu',
+        email: 'vansh.tiberiwal@research.edu',
       },
     },
   ];
@@ -110,6 +113,12 @@ export const TeamGrid: React.FC = () => {
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-carbon-600 dark:group-hover:text-carbon-400 transition-colors">
                     {m.name}
                   </h3>
+                  {m.rollNo && (
+                    <div className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-carbon-700 dark:text-carbon-300 bg-carbon-50 dark:bg-carbon-950/70 px-2 py-0.5 rounded-md border border-carbon-200 dark:border-carbon-800 my-1">
+                      <span>Roll No:</span>
+                      <span className="font-bold">{m.rollNo}</span>
+                    </div>
+                  )}
                   <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                     {m.role}
                   </p>
