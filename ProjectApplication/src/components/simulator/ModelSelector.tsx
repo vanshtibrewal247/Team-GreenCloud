@@ -1,3 +1,4 @@
+import React from 'react';
 import { ArrowLeftRight, Play, Loader2, Sparkles, Scale, RotateCcw } from 'lucide-react';
 import { AlgorithmType, ALGORITHM_REGISTRY } from '../../sim';
 
@@ -72,10 +73,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
             <select
               value={baselineAlgorithm}
               onChange={e => onBaselineChange(e.target.value as AlgorithmType)}
-              className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+              className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer dark:[color-scheme:dark]"
             >
               {ALGORITHMS.map(alg => (
-                <option key={alg} value={alg}>
+                <option
+                  key={alg}
+                  value={alg}
+                  className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5"
+                >
                   {ALGORITHM_REGISTRY[alg].name}
                 </option>
               ))}
@@ -124,10 +129,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
             <select
               value={targetAlgorithm}
               onChange={e => onTargetChange(e.target.value as AlgorithmType)}
-              className="w-full px-3.5 py-2.5 rounded-2xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50/30 dark:bg-emerald-950/20 font-semibold text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+              className="w-full px-3.5 py-2.5 rounded-2xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50/30 dark:bg-emerald-950/20 font-semibold text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer dark:[color-scheme:dark]"
             >
               {ALGORITHMS.map(alg => (
-                <option key={alg} value={alg}>
+                <option
+                  key={alg}
+                  value={alg}
+                  className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5"
+                >
                   {ALGORITHM_REGISTRY[alg].name}
                 </option>
               ))}

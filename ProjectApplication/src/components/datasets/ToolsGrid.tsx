@@ -1,43 +1,43 @@
 import React from 'react';
-import { Cpu, Terminal, Layout, BarChart2, Zap, Cloud } from 'lucide-react';
+import { Cpu, Terminal, Layout, BarChart2, Zap } from 'lucide-react';
 
 export const ToolsGrid: React.FC = () => {
   const tools = [
     {
-      name: 'EdgeCloudSim v3.4',
+      name: 'GreenCloud Simulation Engine',
       badge: 'Simulation Engine',
-      icon: Cloud,
-      color: 'text-cloud-500 bg-cloud-50 dark:bg-cloud-950/60',
-      description:
-        'EdgeCloudSim is an open-source simulation environment built on top of CloudSim. It models edge computing nodes, wireless network delay, mobile IoT clients, and computational task offloading pipelines.',
-      roles: ['Edge & Cloud Topology', 'Queuing & Execution Delays', 'Network Contention Modeling'],
-    },
-    {
-      name: 'Python & Scientific Stack',
-      badge: 'Data & Forecasting',
-      icon: Terminal,
+      icon: Cpu,
       color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/60',
       description:
-        'Powers time-series sequence forecasting, grid carbon predictive curves, and multi-objective Pareto optimization algorithms.',
-      roles: ['pandas & numpy', 'scikit-learn & Prophet', 'Statsmodels ARIMA & LSTM'],
+        'Slot-based discrete-time simulation engine implementing Lyapunov optimization (DWPA) with joint horizontal peer and vertical cloud offloading, dynamic CPU frequency scaling, and empirical carbon tracking.',
+      roles: ['Lyapunov Drift-Plus-Penalty', 'Shannon Channel & Backhaul', 'Closed-Form P1/P2/P3 Solvers'],
+    },
+    {
+      name: 'Python & Machine Learning Stack',
+      badge: 'Data & ML Forecasting',
+      icon: Terminal,
+      color: 'text-sky-500 bg-sky-50 dark:bg-sky-950/60',
+      description:
+        'Powers empirical trace extraction from the master dataset and autoregressive 1-step-ahead forecasting of regional grid carbon intensity and workload bursts using Gradient Boosting, Random Forest, and lag feature engineering.',
+      roles: ['pandas & numpy', 'scikit-learn (GBR / RF)', '1-Step-Ahead Lag Forecasting'],
     },
     {
       name: 'React 18 & TypeScript',
-      badge: 'Interactive UI',
+      badge: 'Client-Side Engine & UI',
       icon: Layout,
       color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/60',
       description:
-        'Provides the high-performance user interface, dynamic topology state synchronization, accessible controls, and component-driven architecture.',
-      roles: ['Interactive Sandbox', 'Type-Safe State Machine', 'Real-Time Topology Rendering'],
+        'Executes the entire simulation engine deterministically in the browser in milliseconds. Synchronizes live topology telemetry, parameter auto-calibration, and multi-algorithm comparative replay without backend latency.',
+      roles: ['In-Browser Deterministic Sim', 'Live Topology Telemetry', 'Auto-Calibration Routines'],
     },
     {
-      name: 'Recharts & Canvas',
-      badge: 'Visualization',
+      name: 'Recharts & Reactive Canvas',
+      badge: 'Telemetry & Visualization',
       icon: BarChart2,
       color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/60',
       description:
-        'Powers high-performance SVG-based responsive charting for multi-dimensional latency, energy consumption, and carbon intensity metrics.',
-      roles: ['Real-Time Bar & Line Charts', 'Donut Offloading Split', 'Pareto Frontier Analysis'],
+        'Powers real-time animated node topologies, slot scrubber replay, queue depth gauges, and comparative SVG charts for cumulative carbon, per-slot emissions, and 14-point Lyapunov V-sweep trade-off curves.',
+      roles: ['Animated Mesh Topology', 'Per-Slot Carbon & Queue Charts', 'Lyapunov V-Sweep Curves'],
     },
   ];
 
