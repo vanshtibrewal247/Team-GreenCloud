@@ -50,9 +50,9 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
     return res.v ?? 2.571e13;
   });
 
-  // Algorithm Selections (Baseline: Local-First, Evaluation Target: DWPA)
-  const [baselineAlgorithm, setBaselineAlgorithm] = useState<AlgorithmType>('Local-First');
-  const [targetAlgorithm, setTargetAlgorithm] = useState<AlgorithmType>('DWPA');
+  // Algorithm Selections (Baseline: DWPA Reactive, Evaluation Target: Forecast-Driven Proposed)
+  const [baselineAlgorithm, setBaselineAlgorithm] = useState<AlgorithmType>('DWPA');
+  const [targetAlgorithm, setTargetAlgorithm] = useState<AlgorithmType>('Forecast-Driven');
 
   // Simulation Results State
   const [isSimulating, setIsSimulating] = useState(false);
@@ -226,9 +226,10 @@ export const TryPage: React.FC<TryPageProps> = ({ onNavigateToResearch }) => {
           setSimulationStage('Computing 14-point Lyapunov V-sweep & 7-algorithm benchmark...');
 
           setTimeout(() => {
-            // 7 Algorithm benchmark
+            // Complete algorithm benchmark (including proposed Forecast-Driven)
             const allAlgs: AlgorithmType[] = [
               'DWPA',
+              'Forecast-Driven',
               'Local-First',
               'Vertical-Only',
               'Horizontal-First',
