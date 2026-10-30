@@ -12,7 +12,7 @@ export interface TeamMember {
   focusAreas: string[];
   social: {
     github: string;
-    linkedin: string;
+    linkedin?: string;
     email: string;
     scholar?: string;
   };
