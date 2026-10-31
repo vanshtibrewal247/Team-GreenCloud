@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Server, ArrowRight, ArrowDown, MapPin } from 'lucide-react';
+import { Table, Server, ArrowRight, ArrowDown, MapPin, Brain } from 'lucide-react';
 import { SimSummary, TraceData } from '../../sim/types';
 
 interface RequestTableProps {
@@ -27,11 +27,20 @@ export const RequestTable: React.FC<RequestTableProps> = ({
             <Table className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Per-Node Computational & Offloading Telemetry
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Per-Node Computational & Offloading Telemetry
+              </h3>
+              {activeSummary.mlModelLabel && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-mono text-[11px] font-semibold">
+                  <Brain className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Forecast Model: {activeSummary.mlModelLabel}</span>
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Detailed breakdown of energy emissions, queuing backlogs, and multi-hop offloading volumes
+              {activeSummary.mlModelLabel && ` evaluated using 1-step-ahead ${activeSummary.mlModelLabel} predictions`}
             </p>
           </div>
         </div>
@@ -47,7 +56,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            {targetSummary.algorithm} (Target)
+            {targetSummary.mlModelLabel ? `${targetSummary.algorithm} [${targetSummary.mlModelLabel}] (Target)` : `${targetSummary.algorithm} (Target)`}
           </button>
           <button
             type="button"
@@ -58,7 +67,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            {baselineSummary.algorithm} (Baseline)
+            {baselineSummary.mlModelLabel ? `${baselineSummary.algorithm} [${baselineSummary.mlModelLabel}] (Baseline)` : `${baselineSummary.algorithm} (Baseline)`}
           </button>
         </div>
       </div>

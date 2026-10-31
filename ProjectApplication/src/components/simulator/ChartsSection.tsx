@@ -30,8 +30,8 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'temporal' | 'queue' | 'cumulative' | 'pareto' | 'vsweep'>('pareto');
 
-  const bName = baselineSummary.algorithm;
-  const tName = targetSummary.algorithm;
+  const bName = baselineSummary.mlModelLabel ? (baselineSummary.algorithm + ' (' + baselineSummary.mlModelLabel + ')') : baselineSummary.algorithm;
+  const tName = targetSummary.mlModelLabel ? (targetSummary.algorithm + ' (' + targetSummary.mlModelLabel + ')') : targetSummary.algorithm;
 
   // Build time-series dataset downsampled to ~150 points for smooth rendering
   const timeSeriesData = useMemo(() => {

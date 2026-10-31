@@ -47,6 +47,8 @@ export interface CityTraceData {
   hourly_carbon_intensity: number[];
   hourly_predicted_carbon_intensity?: number[];
   hourly_predicted_arrivals_gb?: number[];
+  predicted_carbon_intensity?: Record<string, number[]>;
+  predicted_arrivals_gb?: Record<string, number[]>;
 }
 
 export interface CloudTraceData {
@@ -60,6 +62,7 @@ export interface CloudTraceData {
   mean_carbon_intensity: number;
   hourly_carbon_intensity: number[];
   hourly_predicted_carbon_intensity?: number[];
+  predicted_carbon_intensity?: Record<string, number[]>;
 }
 
 export interface TraceData {
@@ -211,6 +214,8 @@ export interface SimSummary {
 
   nodeMetrics: Record<string, NodeMetrics>;
   slots: SlotState[];
+  mlModel?: string;
+  mlModelLabel?: string;
 }
 
 export interface VSweepPoint {

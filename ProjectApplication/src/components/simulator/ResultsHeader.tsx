@@ -32,7 +32,7 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-            {targetSummary.algorithm} vs {baselineSummary.algorithm}
+            {(targetSummary.mlModelLabel ? targetSummary.algorithm + ' (' + targetSummary.mlModelLabel + ')' : targetSummary.algorithm) + ' vs ' + (baselineSummary.mlModelLabel ? baselineSummary.algorithm + ' (' + baselineSummary.mlModelLabel + ')' : baselineSummary.algorithm)}
           </h2>
           <p className="text-xs text-slate-400">
             Replay across {targetSummary.totalProcessedGb.toLocaleString()} GB total workload
