@@ -1,0 +1,26 @@
+[
+  {
+    "id": "random_forest",
+    "label": "Random Forest",
+    "duration_model": "Random Forest",
+    "carbon_model": "Random Forest"
+  },
+  {
+    "id": "hist_gradient_boosting",
+    "label": "HistGradientBoosting",
+    "duration_model": "HistGradientBoosting",
+    "carbon_model": "HistGradientBoosting"
+  },
+  {
+    "id": "xgboost",
+    "label": "XGBoost",
+    "duration_model": "XGBoost",
+    "carbon_model": "XGBoost"
+  },
+  {
+    "id": "lstm",
+    "label": "LSTM",
+    "duration_model": "Random Forest (fixed)",
+    "carbon_model": "LSTM"
+  }
+]

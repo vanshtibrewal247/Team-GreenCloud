@@ -13,6 +13,8 @@ export const OverallComparison: React.FC<OverallComparisonProps> = ({
 }) => {
   const b = baselineSummary;
   const t = targetSummary;
+  const bName = b.mlModelLabel ? (b.algorithm + ' (' + b.mlModelLabel + ')') : b.algorithm;
+  const tName = t.mlModelLabel ? (t.algorithm + ' (' + t.mlModelLabel + ')') : t.algorithm;
 
   const carbonDiff = t.totalCarbonKg - b.totalCarbonKg;
   const carbonPct = ((carbonDiff / (b.totalCarbonKg || 1)) * 100);
@@ -102,7 +104,7 @@ export const OverallComparison: React.FC<OverallComparisonProps> = ({
               <div className="space-y-1">
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <span className="text-xs text-slate-400 block">{t.algorithm}:</span>
+                    <span className="text-xs text-slate-400 block">{tName}:</span>
                     <span className="text-2xl font-black font-mono text-slate-900 dark:text-white">
                       {kpi.targetVal}
                     </span>
@@ -120,7 +122,7 @@ export const OverallComparison: React.FC<OverallComparisonProps> = ({
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex justify-between text-xs text-slate-500">
-                  <span>Baseline ({b.algorithm}):</span>
+                  <span>Baseline ({bName}):</span>
                   <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">
                     {kpi.baselineVal} {kpi.unit}
                   </span>
@@ -140,7 +142,7 @@ export const OverallComparison: React.FC<OverallComparisonProps> = ({
         {/* Baseline Offload Breakdown */}
         <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
-            <span>{b.algorithm} Routing Summary</span>
+            <span>{bName} Routing Summary</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
               Utilization: {(b.avgEdgeUtilization * 100).toFixed(1)}%
             </span>
@@ -164,7 +166,7 @@ export const OverallComparison: React.FC<OverallComparisonProps> = ({
         {/* Target Offload Breakdown */}
         <div className="p-4 rounded-3xl bg-emerald-50/30 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/60 space-y-2">
           <div className="flex items-center justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
-            <span>{t.algorithm} Routing Summary</span>
+            <span>{tName} Routing Summary</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 font-mono border border-emerald-300 dark:border-emerald-700">
               Utilization: {(t.avgEdgeUtilization * 100).toFixed(1)}%
             </span>

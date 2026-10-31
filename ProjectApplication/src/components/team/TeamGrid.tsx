@@ -1,6 +1,6 @@
 import React from 'react';
 import { TeamMember } from '../../types/team';
-import { Mail, GraduationCap } from 'lucide-react';
+import { Mail, GraduationCap, Cpu } from 'lucide-react';
 import { GithubIcon, LinkedinIcon } from '../common/SocialIcons';
 
 export const TeamGrid: React.FC = () => {
@@ -39,32 +39,32 @@ export const TeamGrid: React.FC = () => {
     {
       id: 'member-2',
       order: '02',
-      name: 'Vansh Tiberiwal',
+      name: 'Vansh Tibrewal',
       rollNo: '2024UIT3019',
-      role: 'Data Curation & Frontend Developer',
-      badge: 'Data Curation & Frontend Developer',
+      role: 'Simulation Engine Architect & Full-Stack Systems Lead',
+      badge: '⚡ Simulation Architect & Systems Lead',
       institution: 'Department of Information Technology',
       avatarUrl:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
-      bio: 'Contributing to the EDGE²CO research initiative through dataset curation and frontend development. Focuses on preparing and organizing research datasets and developing interactive web interfaces for visualizing edge-cloud computing and carbon-aware scheduling results.',
+        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
+      bio: 'Lead architect of the EDGE²CO discrete simulation engine and interactive testbed. Spearheaded the mathematical translation of Lyapunov optimization (DWPA) and 7 benchmark models, multi-hop offloading pipelines, and reactive topology telemetry.',
       responsibilities: [
-        'Collecting, cleaning and organizing datasets required for edge-cloud workload analysis.',
-        'Performing data preprocessing, validation and curation for machine learning experiments.',
-        'Developing frontend components and interactive dashboards for the research platform.',
-        'Integrating charts and visualizations to communicate simulation and forecasting results.',
-        'Collaborating on frontend architecture and improving the usability of the application.',
+        'Architecting the in-browser discrete simulation engine executing DWPA and 7 benchmarks across 775 trace hours.',
+        'Implementing closed-form Lyapunov and alternating bisection solvers for CPU frequencies and peer/cloud offloading.',
+        'Engineering the Reactive Topology Canvas with real-time slot scrubbing, channel fading, and queue telemetry.',
+        'Developing the automated Lyapunov V calibration solver and 14-point Pareto trade-off analyzer.',
+        'Building dynamic custom workload ingestion with automated validation and multi-model forecast integration.',
       ],
       focusAreas: [
-        'Data Curation',
-        'Data Preprocessing',
-        'React Development',
-        'Data Visualization',
-        'Frontend Engineering',
+        'Simulation Engine',
+        'Lyapunov Optimization',
+        'Systems Architecture',
+        'Reactive Topology',
+        'React & TypeScript',
       ],
       social: {
         github: 'https://github.com/vanshtibrewal247',
         linkedin: '',
-        email: 'vansh.tiberiwal.ug24@nsut.ac.in',
+        email: 'vansh.tibrewal.ug24@nsut.ac.in',
       },
     },
     {
@@ -102,11 +102,15 @@ export const TeamGrid: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
         {members.map((m) => (
           <div
             key={m.id}
-            className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between group"
+            className={`rounded-3xl bg-white dark:bg-slate-900 border p-6 sm:p-8 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full group ${
+              m.id === 'member-2'
+                ? 'border-emerald-200/80 dark:border-emerald-800/50 hover:border-emerald-500/80 hover:shadow-emerald-500/10'
+                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
           >
             <div className="space-y-4">
               {/* Top Order & Badge */}
@@ -114,21 +118,41 @@ export const TeamGrid: React.FC = () => {
                 <span className="font-mono text-2xl font-extrabold text-slate-300 dark:text-slate-700 shrink-0">
                   {m.order}
                 </span>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-carbon-50 dark:bg-carbon-950/60 text-carbon-700 dark:text-carbon-300 border border-carbon-200 dark:border-carbon-800 text-right leading-tight">
+                <span
+                  className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-right leading-tight transition-all ${
+                    m.id === 'member-2'
+                      ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/80 shadow-sm shadow-emerald-500/10'
+                      : 'bg-carbon-50 dark:bg-carbon-950/60 text-carbon-700 dark:text-carbon-300 border border-carbon-200 dark:border-carbon-800'
+                  }`}
+                >
                   {m.badge}
                 </span>
               </div>
 
               {/* Profile Image & Name */}
               <div className="flex items-center gap-4 pt-1">
-                <div className="relative">
+                <div className="relative group/avatar">
                   <img
                     src={m.avatarUrl}
                     alt={m.name}
-                    className="w-16 h-16 rounded-2xl object-cover ring-2 ring-carbon-500/30 group-hover:ring-carbon-500 transition-all shadow-md"
+                    className={`w-16 h-16 rounded-2xl object-cover transition-all duration-300 shadow-md ${
+                      m.id === 'member-2'
+                        ? 'ring-2 ring-emerald-500/70 group-hover:ring-emerald-400 group-hover:scale-105 shadow-emerald-500/20'
+                        : 'ring-2 ring-carbon-500/30 group-hover:ring-carbon-500'
+                    }`}
                   />
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-carbon-500 border-2 border-white dark:border-slate-900 flex items-center justify-center text-white">
-                    <GraduationCap className="w-3 h-3" />
+                  <div
+                    className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-white shadow-md ${
+                      m.id === 'member-2'
+                        ? 'bg-gradient-to-tr from-emerald-600 to-teal-400'
+                        : 'bg-carbon-500'
+                    }`}
+                  >
+                    {m.id === 'member-2' ? (
+                      <Cpu className="w-3 h-3 text-white animate-pulse" />
+                    ) : (
+                      <GraduationCap className="w-3 h-3 text-white" />
+                    )}
                   </div>
                 </div>
 
@@ -177,7 +201,11 @@ export const TeamGrid: React.FC = () => {
                   {m.focusAreas.map((f, idx) => (
                     <span
                       key={idx}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-md transition-all ${
+                        m.id === 'member-2'
+                          ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 font-medium'
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                      }`}
                     >
                       {f}
                     </span>

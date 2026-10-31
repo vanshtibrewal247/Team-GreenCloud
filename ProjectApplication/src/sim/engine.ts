@@ -72,7 +72,8 @@ export function buildNodeContexts(
 export function runSimulation(
   config: SimConfig,
   algorithm: AlgorithmType,
-  traceOverride?: TraceData
+  traceOverride?: TraceData,
+  mlModel?: string
 ): SimSummary {
   const trace: TraceData = traceOverride || (defaultTraceData as unknown as TraceData);
   const { contexts, cloudMeanCi } = buildNodeContexts(config, trace);
@@ -151,6 +152,8 @@ export function runSimulation(
     const slotPredictedCi: Record<string, number> = {};
     const slotPredictedArrivalsGb: Record<string, number> = {};
 
+    const modelKey = mlModel || 'random_forest';
+
     for (const c of cities) {
       const cityData = cityTraceMap[c];
       let arrSum = 0;
@@ -158,11 +161,14 @@ export function runSimulation(
       let predCiSum = 0;
       let predArrSum = 0;
 
+      const predCiArray = cityData.predicted_carbon_intensity?.[modelKey] ?? cityData.hourly_predicted_carbon_intensity;
+      const predArrArray = cityData.predicted_arrivals_gb?.[modelKey] ?? cityData.hourly_predicted_arrivals_gb;
+
       for (let h = slotHourStart; h < slotHourEnd; h++) {
         arrSum += cityData.hourly_arrivals_gb[h] || 0;
         ciSum += cityData.hourly_carbon_intensity[h] || cityData.mean_carbon_intensity;
-        predCiSum += (cityData.hourly_predicted_carbon_intensity?.[h] ?? cityData.hourly_carbon_intensity[h]) || cityData.mean_carbon_intensity;
-        predArrSum += (cityData.hourly_predicted_arrivals_gb?.[h] ?? cityData.hourly_arrivals_gb[h]) || 0;
+        predCiSum += (predCiArray?.[h] ?? cityData.hourly_carbon_intensity[h]) || cityData.mean_carbon_intensity;
+        predArrSum += (predArrArray?.[h] ?? cityData.hourly_arrivals_gb[h]) || 0;
       }
 
       slotArrivalsGb[c] = arrSum * arrivalScale;
@@ -173,11 +179,12 @@ export function runSimulation(
     }
 
     // Cloud real and predicted CI for this slot
+    const cloudPredCiArray = trace.cloud.predicted_carbon_intensity?.[modelKey] ?? trace.cloud.hourly_predicted_carbon_intensity;
     let cloudCiSum = 0;
     let cloudPredCiSum = 0;
     for (let h = slotHourStart; h < slotHourEnd; h++) {
       cloudCiSum += trace.cloud.hourly_carbon_intensity[h] || trace.cloud.mean_carbon_intensity;
-      cloudPredCiSum += (trace.cloud.hourly_predicted_carbon_intensity?.[h] ?? trace.cloud.hourly_carbon_intensity[h]) || trace.cloud.mean_carbon_intensity;
+      cloudPredCiSum += (cloudPredCiArray?.[h] ?? trace.cloud.hourly_carbon_intensity[h]) || trace.cloud.mean_carbon_intensity;
     }
     const slotRealCloudCi = cloudCiSum / actualHours;
     const slotPredictedCloudCi = cloudPredCiSum / actualHours;
@@ -357,7 +364,14 @@ export function runSimulation(
     peakQueueGb,
     avgEdgeUtilization,
     nodeMetrics,
-    slots
+    slots,
+    mlModel: algorithm === 'Forecast-Driven' ? (mlModel || 'random_forest') : undefined,
+    mlModelLabel: algorithm === 'Forecast-Driven' ? (
+      (mlModel || 'random_forest') === 'random_forest' ? 'Random Forest' :
+      (mlModel || 'random_forest') === 'hist_gradient_boosting' ? 'HistGradientBoosting' :
+      (mlModel || 'random_forest') === 'xgboost' ? 'XGBoost' :
+      (mlModel || 'random_forest') === 'lstm' ? 'LSTM' : (mlModel || 'random_forest')
+    ) : undefined
   };
 }
 
