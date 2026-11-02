@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   ArrowLeftRight,
   Play,
@@ -8,11 +8,8 @@ import {
   RotateCcw,
   Zap,
   Brain,
-  Server,
-  HelpCircle,
 } from 'lucide-react';
 import { AlgorithmType, ALGORITHM_REGISTRY } from '../../sim';
-import { MLService } from '../../services/mlService';
 
 export type ModelParadigm = 'reactive' | 'forecast';
 
@@ -98,27 +95,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   selectedMLModel,
   onMLModelChange,
 }) => {
-  const [mlServiceOnline, setMlServiceOnline] = useState<boolean | null>(null);
-  const [showApiInfo, setShowApiInfo] = useState(false);
-
   // Active ML models with fallback support
   const activeBaseML = baselineMLModel || selectedMLModel || 'random_forest';
   const activeTargetML = targetMLModel || selectedMLModel || 'random_forest';
-
-  // Check FastAPI ml_service health on mount
-  useEffect(() => {
-    let isMounted = true;
-    MLService.checkHealth(1200)
-      .then((status) => {
-        if (isMounted) setMlServiceOnline(status.online);
-      })
-      .catch(() => {
-        if (isMounted) setMlServiceOnline(false);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const baseParadigm: ModelParadigm = baselineAlgorithm === 'Forecast-Driven' ? 'forecast' : 'reactive';
   const targetParadigm: ModelParadigm = targetAlgorithm === 'Forecast-Driven' ? 'forecast' : 'reactive';
@@ -172,56 +151,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           First select whether you want a <strong>Reactive</strong> baseline (7 models) or a <strong>Forecast / ML-Driven</strong> predictive model (4 models), then evaluate both simultaneously.
         </p>
 
-        {/* ML API status banner */}
-        <div className="pt-2 flex items-center justify-center gap-2">
-          <div
-            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium border transition-all ${
-              mlServiceOnline
-                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-            }`}
-          >
-            <Server className="w-3.5 h-3.5" />
-            <span>
-              {mlServiceOnline
-                ? '● FastAPI ml_service.py Online (:8000)'
-                : '○ In-Browser ML Engine Active (FastAPI offline)'}
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowApiInfo(!showApiInfo)}
-              className="hover:text-emerald-500 underline ml-1 cursor-pointer flex items-center gap-0.5"
-              title="FastAPI integration instructions"
-            >
-              <HelpCircle className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
 
-        {/* API Help Popover */}
-        {showApiInfo && (
-          <div className="mt-2 p-3.5 rounded-2xl bg-slate-900 text-left text-xs text-slate-300 border border-slate-800 shadow-xl max-w-lg mx-auto space-y-2 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between font-bold text-white border-b border-slate-800 pb-1.5">
-              <span>FastAPI Inference Service (scripts/ml_service.py)</span>
-              <button
-                type="button"
-                onClick={() => setShowApiInfo(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="text-slate-400">
-              The project includes a production-grade FastAPI inference API (<code>scripts/ml_service.py</code>) backed by the <code>ml_artifacts/</code> bundle from <code>forecast_driven_carbon_aware_edge_cloud_ml_web_ready.ipynb</code>.
-            </p>
-            <div className="bg-slate-950 p-2.5 rounded-xl font-mono text-[11px] text-emerald-400 overflow-x-auto">
-              uvicorn scripts.ml_service:app --host 0.0.0.0 --port 8000 --reload
-            </div>
-            <p className="text-[11px] text-slate-400">
-              When online, the app can query endpoints <code>/health</code>, <code>/models</code>, and <code>/simulate</code> directly.
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Selector Cards Container */}
