@@ -397,7 +397,8 @@ export function vSweep(
   config: SimConfig,
   algorithm: AlgorithmType = 'DWPA',
   vValues?: number[],
-  traceOverride?: TraceData
+  traceOverride?: TraceData,
+  mlModel?: string
 ): VSweepPoint[] {
   const effectiveVValues =
     vValues && vValues.length > 0
@@ -415,7 +416,7 @@ export function vSweep(
       }
     };
 
-    const res = runSimulation(sweepConfig, algorithm, traceOverride);
+    const res = runSimulation(sweepConfig, algorithm, traceOverride, mlModel);
     points.push({
       v,
       totalCarbonKg: res.totalCarbonKg,
