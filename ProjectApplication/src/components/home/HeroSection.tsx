@@ -158,8 +158,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                       <Leaf className="w-3.5 h-3.5 text-carbon-400" />
                       <span>
                         {activeTab === 'predicted'
-                          ? 'Forecasting Module: Grid Carbon Dip Detected (-38% in 15m)'
-                          : 'Reactive Mode: Instantaneous snapshot only'}
+                          ? 'ML Predictor: CAISO Solar Valley Ahead (-38% gCO₂ in 1h)'
+                          : 'DWPA Reactive Mode: Current slot snapshot only (zero lookahead)'}
                       </span>
                     </div>
                   </div>
@@ -168,51 +168,77 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 {/* Layer 3: Edge Servers & Cloud Destination Nodes */}
                 <div className="grid grid-cols-2 gap-4">
                   {/* Edge Server Node */}
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-800/90 to-slate-900 border border-emerald-500/40 relative group">
+                  <div
+                    className={`p-3.5 rounded-2xl bg-gradient-to-br from-slate-800/90 to-slate-900 border transition-all duration-300 relative group ${
+                      activeTab === 'predicted' ? 'border-emerald-500/40 shadow-sm shadow-emerald-950/30' : 'border-amber-500/40 shadow-sm shadow-amber-950/30'
+                    }`}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
-                        <Cpu className="w-4 h-4 text-emerald-400" />
-                        <span className="text-xs font-semibold text-emerald-300">Local Edge (Delhi)</span>
+                        <Cpu className={`w-4 h-4 ${activeTab === 'predicted' ? 'text-emerald-400' : 'text-amber-400'}`} />
+                        <span className={`text-xs font-semibold ${activeTab === 'predicted' ? 'text-emerald-300' : 'text-amber-300'}`}>
+                          Local Edge (Los Angeles)
+                        </span>
                       </div>
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span
+                        className={`w-2 h-2 rounded-full animate-pulse ${
+                          activeTab === 'predicted' ? 'bg-emerald-400' : 'bg-amber-400'
+                        }`}
+                      />
                     </div>
                     <div className="space-y-1.5 text-[11px] font-mono text-slate-300">
                       <div className="flex justify-between">
                         <span className="text-slate-400">Latency:</span>
-                        <span className="text-white font-bold">18.4 ms</span>
+                        <span className="text-white font-bold">14.2 ms</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Carbon Intensity:</span>
-                        <span className="text-amber-300 font-bold">540 gCO₂/kWh</span>
+                        <span className={`font-bold ${activeTab === 'predicted' ? 'text-emerald-400' : 'text-amber-300'}`}>
+                          {activeTab === 'predicted' ? '279.8 gCO₂/kWh' : '279.8 gCO₂/kWh'}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Target Queue:</span>
-                        <span className="text-emerald-400">Optimal (38%)</span>
+                        <span className="text-slate-400">Queue Backlog Q(t):</span>
+                        <span className={`font-bold ${activeTab === 'predicted' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {activeTab === 'predicted' ? '18.2 GB (Optimal)' : '38.4 GB (Congested)'}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Cloud Datacenter Node */}
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-800/90 to-slate-900 border border-cloud-500/40 relative">
+                  <div
+                    className={`p-3.5 rounded-2xl bg-gradient-to-br from-slate-800/90 to-slate-900 border transition-all duration-300 relative ${
+                      activeTab === 'predicted' ? 'border-cloud-500/50 shadow-sm shadow-cloud-950/30' : 'border-slate-700/60'
+                    }`}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
-                        <Cloud className="w-4 h-4 text-cloud-400" />
-                        <span className="text-xs font-semibold text-cloud-300">Green Cloud (Frankfurt)</span>
+                        <Cloud className={`w-4 h-4 ${activeTab === 'predicted' ? 'text-cloud-400' : 'text-slate-400'}`} />
+                        <span className={`text-xs font-semibold ${activeTab === 'predicted' ? 'text-cloud-300' : 'text-slate-300'}`}>
+                          Green Cloud (Berkeley County)
+                        </span>
                       </div>
-                      <span className="w-2 h-2 rounded-full bg-cloud-400 animate-pulse" />
+                      <span
+                        className={`w-2 h-2 rounded-full animate-pulse ${
+                          activeTab === 'predicted' ? 'bg-cloud-400' : 'bg-slate-500'
+                        }`}
+                      />
                     </div>
                     <div className="space-y-1.5 text-[11px] font-mono text-slate-300">
                       <div className="flex justify-between">
                         <span className="text-slate-400">Latency:</span>
-                        <span className="text-white font-bold">78.2 ms</span>
+                        <span className="text-white font-bold">68.5 ms</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Carbon Intensity:</span>
-                        <span className="text-emerald-400 font-bold">210 gCO₂/kWh</span>
+                        <span className="text-emerald-400 font-bold">195.0 gCO₂/kWh</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Capacity:</span>
-                        <span className="text-cloud-400">Massive High-MIPS</span>
+                        <span className="text-slate-400">Offload Target:</span>
+                        <span className={`font-bold ${activeTab === 'predicted' ? 'text-cloud-300' : 'text-slate-400'}`}>
+                          {activeTab === 'predicted' ? 'Active (Batch Paced)' : 'Underutilized (Idle)'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -221,13 +247,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 {/* Bottom Decision Banner */}
                 <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] font-mono flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-carbon-400" />
+                    <Activity className={`w-4 h-4 ${activeTab === 'predicted' ? 'text-carbon-400' : 'text-amber-400'}`} />
                     <span className="text-slate-300">Offloading Decision:</span>
                   </div>
-                  <span className="text-carbon-400 font-semibold">
+                  <span className={`font-semibold ${activeTab === 'predicted' ? 'text-carbon-400' : 'text-amber-400'}`}>
                     {activeTab === 'predicted'
-                      ? 'Route urgent to Edge (18ms) • Defer batch to Low-Carbon Cloud'
-                      : 'Greedy placement on nearest edge (risking congestion)'}
+                      ? 'Lyapunov Drift-Penalty: Urgent to Edge (14ms) • Defer batch to Green Cloud (V-optimal)'
+                      : 'DWPA Reactive: Local greedy execution • Queue congested at Edge (38.4 GB)'}
                   </span>
                 </div>
               </div>
