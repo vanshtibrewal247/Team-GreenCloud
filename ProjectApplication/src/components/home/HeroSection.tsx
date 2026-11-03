@@ -252,8 +252,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>
                   <span className={`font-semibold ${activeTab === 'predicted' ? 'text-carbon-400' : 'text-amber-400'}`}>
                     {activeTab === 'predicted'
-                      ? 'Lyapunov Drift-Penalty: Urgent to Edge (14ms) • Defer batch to Green Cloud (V-optimal)'
-                      : 'DWPA Reactive: Local greedy execution • Queue congested at Edge (38.4 GB)'}
+                      ? 'Forecast-Driven EDGE²CO: Urgent tasks to Local Edge (14ms) • Batch workloads to Green Cloud'
+                      : 'Reactive Baseline (DWPA): Greedy local execution • Unaware of upcoming carbon surge'}
                   </span>
                 </div>
               </div>
