@@ -151,19 +151,29 @@ function getSlotIngressRequests(
       let targetNode: string | undefined;
 
       if (currentSlot) {
-        if (cloudFlow && cloudFlow.volumeGb > 0 && idx === 0) {
+        const cloudVol = cloudFlow?.volumeGb || 0;
+
+        if (cloudVol > 0 && localProc > 0 && idx === 0) {
+          // Hybrid partitioning: Lyapunov offloaded a fraction to cloud, processed rest locally
           status = 'offloaded_cloud';
-          statusLabel = 'Offloaded to California Cloud DC (Optical WAN)';
+          const cloudStr = cloudVol >= 1 ? `${cloudVol.toFixed(1)} GB` : `${Math.max(1, Math.round(cloudVol * 1024))} MB`;
+          const localStr = `${localProc.toFixed(1)} GB`;
+          statusLabel = `⚡ Hybrid: ${cloudStr} to Cloud • ${localStr} Local CPU`;
+        } else if (cloudVol >= size && idx === 0) {
+          status = 'offloaded_cloud';
+          statusLabel = `☁ Offloaded to Cloud (${cloudVol.toFixed(1)} GB Optical WAN)`;
         } else if (peerFlows.length > 0 && idx < peerFlows.length) {
           status = 'offloaded_peer';
           targetNode = peerFlows[idx].to;
-          statusLabel = `Offloaded to ${peerFlows[idx].to} (P2P Mesh)`;
+          const pVol = peerFlows[idx].volumeGb;
+          const pStr = pVol >= 1 ? `${pVol.toFixed(1)} GB` : `${Math.max(1, Math.round(pVol * 1024))} MB`;
+          statusLabel = `↔ Offloaded to ${peerFlows[idx].to} (${pStr})`;
         } else if (localProc > 0) {
           status = 'executing_local';
-          statusLabel = `Executing Locally (${fGhz.toFixed(2)} GHz)`;
+          statusLabel = `⚡ Local Processing (${fGhz.toFixed(2)} GHz)`;
         } else if (queueDepth > 0) {
           status = 'queued';
-          statusLabel = `Queued in Ingress Buffer (${queueDepth.toFixed(1)} GB)`;
+          statusLabel = `⏳ Queued in Ingress Buffer (${queueDepth.toFixed(1)} GB)`;
         } else {
           status = 'executing_local';
           statusLabel = 'Completed';
@@ -394,8 +404,16 @@ export const InfrastructureVisualizer: React.FC<InfrastructureVisualizerProps> =
     }
   })();
 
-  const activePeerFlows = currentSlot?.peerFlows || [];
-  const activeCloudFlows = currentSlot?.cloudFlows || [];
+  const formatFlowVolume = (gb: number): string => {
+    if (gb >= 1) return `${gb.toFixed(1)} GB`;
+    if (gb >= 0.1) return `${gb.toFixed(1)} GB`;
+    if (gb >= 0.01) return `${gb.toFixed(2)} GB`;
+    const mb = Math.round(gb * 1024);
+    return `${Math.max(1, mb)} MB`;
+  };
+
+  const activePeerFlows = (currentSlot?.peerFlows || []).filter(f => f.volumeGb >= 0.001);
+  const activeCloudFlows = (currentSlot?.cloudFlows || []).filter(f => f.volumeGb >= 0.001);
 
   return (
     <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm flex flex-col gap-5">
@@ -926,7 +944,7 @@ export const InfrastructureVisualizer: React.FC<InfrastructureVisualizerProps> =
                   <ArrowRight className="w-3 h-3 text-sky-500 shrink-0" style={{ strokeWidth: widthWeight }} />
                   <span className="font-semibold">{flow.to}</span>
                   <span className="font-mono font-bold text-sky-600 dark:text-sky-400 ml-1">
-                    {flow.volumeGb.toFixed(1)} GB
+                    {formatFlowVolume(flow.volumeGb)}
                   </span>
                 </div>
               );
@@ -940,7 +958,7 @@ export const InfrastructureVisualizer: React.FC<InfrastructureVisualizerProps> =
                 <ArrowDown className="w-3 h-3 text-indigo-500 shrink-0" />
                 <span className="font-semibold">California Cloud</span>
                 <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 ml-1">
-                  {flow.volumeGb.toFixed(1)} GB
+                  {formatFlowVolume(flow.volumeGb)}
                 </span>
               </div>
             ))}
