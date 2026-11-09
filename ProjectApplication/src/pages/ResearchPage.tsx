@@ -6,6 +6,7 @@ import { PaperAnalysisCards } from '../components/research/PaperAnalysisCards';
 import { ApproachComparison } from '../components/research/ApproachComparison';
 import { ContributionPillars } from '../components/research/ContributionPillars';
 import { ResearchResultsShowcase } from '../components/research/ResearchResultsShowcase';
+import { StatisticalTestingSection } from '../components/research/StatisticalTestingSection';
 import { ArrowRight } from 'lucide-react';
 
 interface ResearchPageProps {
@@ -45,6 +46,9 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onNavigateToTry }) =
 
       {/* 6.7 Results & Benchmarks */}
       <ResearchResultsShowcase />
+
+      {/* 6.8 Empirical Statistical Validation & Hypothesis Testing */}
+      <StatisticalTestingSection />
 
       {/* Bottom Sandbox CTA */}
       <div className="rounded-3xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 text-center space-y-4">
