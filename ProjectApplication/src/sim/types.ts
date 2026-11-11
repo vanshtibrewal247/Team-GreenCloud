@@ -111,6 +111,7 @@ export interface SimConfig {
   v: ParamMeta<number>; // paper Lyapunov parameter V
   emaAlpha: ParamMeta<number>; // paper EMA smoothing factor alpha (default 0.5)
   phi: ParamMeta<number>; // cycles per bit (auto-calibrated or paper preset 1000)
+  anticipationBeta: ParamMeta<number>; // Workload anticipation factor beta (default 0.3)
 
   // Paper preset flag
   usePaperPreset?: boolean;

@@ -888,6 +888,12 @@ export const InfrastructureVisualizer: React.FC<InfrastructureVisualizerProps> =
                       <span className="font-mono text-slate-200">{data.proc.toFixed(1)} GB</span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="text-slate-400">Energy Consumed:</span>
+                      <span className="font-mono text-amber-300">
+                        {data.ci > 0 ? (data.carb / data.ci).toFixed(2) : '0.00'} kWh
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-slate-400">Slot Carbon Emitted:</span>
                       <span className="font-mono text-rose-300">{data.carb.toFixed(1)} gCO2</span>
                     </div>

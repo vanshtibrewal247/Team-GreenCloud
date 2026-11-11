@@ -136,6 +136,7 @@ export function executeSlotStep(
   const g = config.channelGainG.value;
   const V = config.v.value;
   const phi = config.phi.value;
+  const beta = config.anticipationBeta?.value ?? 0.3;
 
   // Decision carbon intensity: Forecast-Driven uses predictedK, others use currentK
   const decK: Record<string, number> = {};
@@ -295,9 +296,9 @@ export function executeSlotStep(
         if (i === j) continue;
         const effQj = Q[j] + nextEdgeBuffers[j];
 
-        // In predictive mode, anticipate incoming workload on peers and local node
-        const antQi = algorithm === 'Forecast-Driven' ? Q[i] + 0.3 * (predictedArrivalsGb?.[i] ?? 0) : Q[i];
-        const antQj = algorithm === 'Forecast-Driven' ? effQj + 0.3 * (predictedArrivalsGb?.[j] ?? 0) : effQj;
+        // In predictive mode, anticipate incoming workload on peers and local node using anticipation factor beta
+        const antQi = algorithm === 'Forecast-Driven' ? Q[i] + beta * (predictedArrivalsGb?.[i] ?? 0) : Q[i];
+        const antQj = algorithm === 'Forecast-Driven' ? effQj + beta * (predictedArrivalsGb?.[j] ?? 0) : effQj;
         if (antQj >= antQi) continue; // One-way offload from higher to lower effective queue
 
         const qBitsI = Q[i] * BITS_PER_GB;
@@ -484,7 +485,7 @@ export function executeSlotStep(
 
     if (algorithm === 'DWPA' || algorithm === 'Forecast-Driven' || algorithm === 'Vertical-Only') {
       const effQc = Qc[i] + nextCloudBuffers[i];
-      const antQi = algorithm === 'Forecast-Driven' ? Q[i] + 0.3 * (predictedArrivalsGb?.[i] ?? 0) : Q[i];
+      const antQi = algorithm === 'Forecast-Driven' ? Q[i] + beta * (predictedArrivalsGb?.[i] ?? 0) : Q[i];
       if (effQc < antQi) {
         const qBits = Q[i] * BITS_PER_GB;
         const qcBits = effQc * BITS_PER_GB;

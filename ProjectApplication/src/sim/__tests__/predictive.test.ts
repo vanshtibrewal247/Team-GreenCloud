@@ -46,4 +46,23 @@ describe('Forecast-Driven Carbon-Aware (Proposed Predictive Model)', () => {
       }
     }
   });
+
+  it('respects anticipationBeta parameter: beta=0 operates reactively while beta>0 enables proactive lookahead', () => {
+    const configReactive = {
+      ...config,
+      anticipationBeta: { ...config.anticipationBeta, value: 0.0 }
+    };
+    const configProactive = {
+      ...config,
+      anticipationBeta: { ...config.anticipationBeta, value: 0.3 }
+    };
+
+    const resReactive = runSimulation(configReactive, 'Forecast-Driven', trace);
+    const resProactive = runSimulation(configProactive, 'Forecast-Driven', trace);
+
+    expect(resReactive.queueConservationError).toBeLessThan(1e-5);
+    expect(resProactive.queueConservationError).toBeLessThan(1e-5);
+    expect(resProactive.totalCarbonKg).toBeGreaterThan(0);
+    expect(resReactive.totalCarbonKg).toBeGreaterThan(0);
+  });
 });

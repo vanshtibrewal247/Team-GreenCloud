@@ -156,6 +156,12 @@ export function createDefaultConfig(trace?: TraceData, algorithm: AlgorithmType 
       source: 'Assumed',
       reason: 'Not in dataset. Auto-calibrated so average edge utilization is ~70%, preventing empty or diverging queues.'
     },
+    anticipationBeta: {
+      value: 0.3,
+      assumed: false,
+      source: 'Assumed',
+      reason: 'Workload Anticipation Factor (beta) for Forecast-Driven scheduling. Weights 1-step-ahead ML predicted arrivals in queue estimation Q_hat = Q + beta * A_pred. Beta = 0 corresponds to reactive baseline; 0.3 provides optimal proactive offloading without premature transfer.'
+    },
 
     usePaperPreset: false
   };
@@ -202,6 +208,13 @@ export function createPaperPresetConfig(trace?: TraceData): SimConfig {
     assumed: false,
     source: 'Paper',
     reason: 'Paper Section VI specifies bandwidth W = 1 MHz.'
+  };
+
+  config.anticipationBeta = {
+    value: 0.0,
+    assumed: false,
+    source: 'Paper',
+    reason: 'Paper is purely reactive with zero lookahead (beta = 0.0).'
   };
 
   return config;

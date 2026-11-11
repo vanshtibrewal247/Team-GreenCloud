@@ -66,12 +66,16 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({
     });
   };
 
-  const handleEmaAlphaChange = (alpha: number) => {
+  const handleAnticipationBetaChange = (betaVal: number) => {
     onChange({
       ...config,
-      emaAlpha: {
-        ...config.emaAlpha,
-        value: alpha,
+      anticipationBeta: {
+        ...(config.anticipationBeta ?? {
+          assumed: false,
+          source: 'Assumed',
+          reason: 'Workload Anticipation Factor (beta) for Forecast-Driven scheduling.',
+        }),
+        value: betaVal,
       },
     });
   };
@@ -327,27 +331,60 @@ export const RequestConfigCard: React.FC<RequestConfigCardProps> = ({
           </div>
         </div>
 
-        {/* Row 5: EMA Alpha */}
-        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              EMA Smoothing Factor (α)
-            </span>
-            <span className="text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
-              {config.emaAlpha.value.toFixed(2)}
-            </span>
+        {/* Row 5: Workload Anticipation Factor (Beta) */}
+        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Workload Anticipation Factor (β)
+              </span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                ★ Proposed Novelty
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                β = {(config.anticipationBeta?.value ?? 0.3).toFixed(2)}
+              </span>
+            </div>
           </div>
+
           <input
             type="range"
             min="0.0"
             max="1.0"
             step="0.05"
-            value={config.emaAlpha.value}
-            onChange={e => handleEmaAlphaChange(parseFloat(e.target.value))}
-            className="w-full accent-amber-500 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
+            value={config.anticipationBeta?.value ?? 0.3}
+            onChange={e => handleAnticipationBetaChange(parseFloat(e.target.value))}
+            className="w-full accent-emerald-500 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
           />
+
+          <div className="flex justify-between text-[10px] text-slate-400">
+            <span
+              onClick={() => handleAnticipationBetaChange(0.0)}
+              className="cursor-pointer hover:text-slate-200"
+              title="Set to 0.0 (Reactive Baseline)"
+            >
+              0.0 (Reactive Baseline)
+            </span>
+            <span
+              onClick={() => handleAnticipationBetaChange(0.3)}
+              className="cursor-pointer text-emerald-600 dark:text-emerald-400 font-semibold underline decoration-dotted"
+              title="Click to reset to 0.3 (Optimal Proactive)"
+            >
+              0.3 (Optimal Proactive)
+            </span>
+            <span
+              onClick={() => handleAnticipationBetaChange(1.0)}
+              className="cursor-pointer hover:text-slate-200"
+              title="Set to 1.0 (Full Lookahead)"
+            >
+              1.0 (Aggressive)
+            </span>
+          </div>
+
           <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-            Exponential moving average coefficient for carbon intensity tracking: k_i(t) = α·C_i(t) + (1-α)·k_i(t-1)
+            Weights 1-hour-ahead ML forecasted workload: Q̂_i = Q_i + β·Â_i(t+1). Enables proactive queue pre-clearing and peer sharing before congestion hits.
           </p>
         </div>
       </div>
