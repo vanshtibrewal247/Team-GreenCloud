@@ -518,7 +518,7 @@ This project is licensed under the MIT License. If you use GreenCloud in your ac
 ```bibtex
 @article{greencloud2026,
   title={Forecast-Driven Carbon-Aware Task Offloading in Collaborative Edge-Cloud Computing},
-  author={Meena, Himesh Kumar and Tiberiwal, Vansh and Singh, Pratikshit},
+  author={Meena, Himesh Kumar and Tibrewal, Vansh and Singh, Pratikshit},
   journal={EDGE2CO Research Lab Technical Report},
   year={2026}
 }
