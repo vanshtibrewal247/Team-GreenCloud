@@ -506,8 +506,8 @@ Our engine directly implements the mathematical framework of Chen et al. (IEEE W
 *Distributed Systems & Sustainable Computing Laboratory*
 
 - **Himesh Kumar Meena** (`2024UIT3077`) — Team Lead & ML / Frontend Engineer ([GitHub](https://github.com/mr-knight-28) • [Email](mailto:himesh.meena.ug24@nsut.ac.in))
-- **Vansh Tibrewal** (`2024UIT3019`) — Data Curation & Frontend Developer ([GitHub](https://github.com/vanshtibrewal247) • [Email](mailto:vansh.tibrewal.ug24@nsut.ac.in))
-- **Pratikshit Singh** (`2024UIT3004`) — Data Curation & Backend Developer ([GitHub](https://github.com/pratikshitcodes) • [Email](mailto:pratikshit.singh.ug24@nsut.ac.in))
+- **Vansh Tibrewal** (`2024UIT3019`) — Data Curation & Backend Developer ([GitHub](https://github.com/vanshtibrewal247) • [Email](mailto:vansh.tibrewal.ug24@nsut.ac.in))
+- **Pratikshit Singh** (`2024UIT3004`) — Data Curation & Data Testing ([GitHub](https://github.com/pratikshitcodes) • [Email](mailto:pratikshit.singh.ug24@nsut.ac.in))
 
 ---
 
