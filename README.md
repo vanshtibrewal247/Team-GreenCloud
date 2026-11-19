@@ -137,7 +137,7 @@ Master Trace (775 Slots, 202,806 GB Workload, 9 US Regions)
 2. **Units & Capacity Alignment:**  
    *CPU Demand:* Alibaba records `plan_cpu` as percent-of-core ($100 = 1.0\text{ core}$, $600 = 6.0\text{ cores}$). Converted to absolute core shares matching Dell R740 specifications.  
    *Memory:* Converted normalized ratios to concrete megabytes (`task_size_mb`).  
-   *SLA Deadlines:* Calibrated `delay_tolerance_sec` using a $1.5\times \text{observed\_duration}$ slack factor.  
+   *SLA Deadlines:* Calibrated `delay_tolerance_sec` using a $1.5\times$ `observed_duration` slack factor.  
    *Priority:* Stratified into balanced tertiles (33.3% High, 33.3% Medium, 33.3% Low).
 3. **Eliminating Fake Linear Interpolation (Stopping Look-Ahead Leakage):**  
    *Issue:* While CAISO natively publishes 5-minute carbon telemetry, other US ISO regions provided hourly data that previous third-party tools linearly interpolated into fake 5-minute readings (where $91.7\%$ of second differences were zero). Linear interpolation uses future hourly points to compute intermediate values, introducing catastrophic look-ahead data leakage.  
