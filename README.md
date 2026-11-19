@@ -1,6 +1,7 @@
 # 🌱 GreenCloud: Forecast-Driven Carbon-Aware Task Offloading in Collaborative Edge-Cloud Computing
 
 > **A Reproducible Research Framework & Simulation Platform for Sustainable Distributed Intelligence**  
+> **Live Demo:** [https://greencloud-weld.vercel.app/](https://greencloud-weld.vercel.app/)  
 > **Repository:** [Team-GreenCloud](https://github.com/vanshtibrewal247/Team-GreenCloud)  
 > **Simulation Core:** TypeScript / Node.js Engine (`ProjectApplication/src/sim/`)  
 > **ML Pipeline:** Python 3.10+ / scikit-learn / XGBoost / PyTorch (`Machine-Learning/`, `scripts/`)  
@@ -438,6 +439,9 @@ npx tsx ../scripts/test_comparison.ts
 ```
 
 ### Step 5: Launch the Interactive Web Platform
+
+> 🌐 **Live Demo:** Explore the deployed platform directly at **[https://greencloud-weld.vercel.app/](https://greencloud-weld.vercel.app/)** without local setup.
+
 ```bash
 npm run dev
 # Open http://localhost:3000 in your browser
